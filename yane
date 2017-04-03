@@ -1,0 +1,448 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#  yane (Yet Another Network Emulator !) by E. Chaput
+#
+#  TBD
+#    0.1 : - put it on github
+#    0.2 : - another virt tool
+#          - remove WARNINGs (namespace specific parts)
+#    0.3 : - bridges
+#    ??? : - Doc
+#          - install procedure
+#-------------------------------------------------------------------------------
+YANE_VERSION="0.1"   # First test
+
+#-------------------------------------------------------------------------------
+# Main commands (do not trust $PATH)
+#-------------------------------------------------------------------------------
+BASH=/bin/bash
+BASENAME=/usr/bin/basename
+CAT=/bin/cat
+DIRNAME=/usr/bin/dirname
+GREP=/bin/grep
+IP=/sbin/ip
+KILL=/bin/kill
+LS=/bin/ls
+MKFIFO=/usr/bin/mkfifo
+MKDIR=/bin/mkdir
+RM=/bin/rm
+READLINK=/bin/readlink
+TOUCH=/usr/bin/touch
+TRUE=/bin/true
+XTERM=/usr/bin/xterm
+
+#-------------------------------------------------------------------------------
+# Main parameters
+#-------------------------------------------------------------------------------
+YANE_ROOT_DIR=$($DIRNAME $($READLINK -f $0))
+BASEDIR=$PWD
+DEBUG=False
+VERBOSE=False
+NET_CONFIG_FILE=yane.yml
+TMP_CFG_FILE=./yane.$$
+
+declare -A hostNum       # Array of host numbers : 0 1, ...
+declare -A hostName      # Array of host names
+declare -A hostMode      # Array of host mode
+declare -A consHost      # Array of hosts to run console on
+declare -A p2pLinks      # Array of p2p links
+declare -A interfaces    # Array of known interfaces
+declare -A dumpIf        # Array of interface to snoop
+declare -A modules       # Array o loaded modules
+
+#===============================================================================
+# General helper functions
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# Cleanup before exit
+#-------------------------------------------------------------------------------
+cleanup () {
+   $RM $TMP_CFG_FILE > /dev/null 2>&1 || $TRUE
+}
+
+#-------------------------------------------------------------------------------
+# Basic log utility
+#   $1 : LOG (printed iif VERBOSE) ERR DEB (print iif DEBUG)
+#   $2 : message
+#-------------------------------------------------------------------------------
+logMessage () {
+   case "$1" in 
+      ERR )
+         shift
+         echo $*
+      ;;
+      LOG )
+         shift
+         if [ "$VERBOSE" == "True" ] ; then 
+            echo $*
+         fi
+      ;;
+      DEB )
+         shift
+         if [ "$DEBUG" == "True" ] ; then 
+            echo $*
+         fi
+      ;;
+   esac
+}
+
+exitYane () {
+   cleanup
+   exit
+}
+
+#-------------------------------------------------------------------------------
+# Loading modules
+#-------------------------------------------------------------------------------
+yaneLoadModules() {
+   mods=`$LS $YANE_ROOT_DIR/yane_module_*|$GREP -v \~`
+
+   for mod in $mods
+   do
+      logMessage DEB "Loading $mod"
+      . $mod
+      modules+="`$BASENAME $mod` "
+   done
+}
+
+#===============================================================================
+# Snooping helper functions
+#
+# Run a tcpdump on each if in dumpIf. The output is sent to a fifo.
+# WARNING : namespace specific
+#===============================================================================
+yaneStartSnooping () {
+    dumpFifo=""
+    $RM -rf /tmp/nssi > /dev/null 2>&1 ||$TRUE
+    $MKDIR /tmp/nssi > /dev/null 2>&1 ||$TRUE
+    $RM ./.tcpdump-pids > /dev/null 2>&1 ||$TRUE
+
+    if [ "${dumpIf['all']}" == "all" ] ; then
+       unset dumpIf["all"]
+       for i in ${interfaces[@]} ; do
+	   dumpIf["$i"]="$i"
+       done
+    fi
+
+    for dif in ${dumpIf[@]} ; do
+       h=`echo $dif|cut -d: -f1`
+       i=`echo $dif|cut -d: -f2`
+       logMessage LOG "Snooping on int '$i' from '$h'"
+
+       if [ -z ""$h ] ; then
+	   logMessage ERR "No snoop host defined in '$dif'"
+	   exit
+       fi
+       if [ -z ""`$IP netns list|grep $h` ] ; then
+	   echo "*** Unknown snoop host '$h'"
+	   exit
+       fi
+       if [ -z ""$i ] ; then
+	   logMessage ERR "*** No snoop interface defined in '$snoopi'"
+	   exit
+       fi
+
+       $MKDIR /tmp/nssi/$h > /dev/null 2>&1 ||$TRUE
+       $MKFIFO /tmp/nssi/$h/$i
+       
+       $IP netns exec $h $YANE_ROOT_DIR/yane_run_tcpdump $i /tmp/nssi/$h/$i > /dev/null 2>&1 & 
+       echo $! >> ./.tcpdump-pids
+    done
+
+   if [ ${#dumpIf[@]} -gt 0 ] ; then
+      echo You could run
+      echo -n "wireshark "
+      for dif in ${dumpIf[@]} ; do
+          h=`echo $dif|cut -d: -f1`
+          i=`echo $dif|cut -d: -f2`
+	  echo -n "-i /tmp/nssi/$h/$i "
+      done
+      echo
+   fi
+}
+
+#-------------------------------------------------------------------------------
+# Kill all open consoles
+#-------------------------------------------------------------------------------
+yaneKillSnooping () {
+   logMessage LOG "Kill snooping"
+   
+   if [ -f ./.yane_snooping.pid ] ; then 
+      for c in `cat ./.yane_snooping.pid`
+      do
+          $KILL $c
+      done
+      $RM ./.yane_snooping.pid
+   fi
+}
+
+
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# Run the startup script
+#-------------------------------------------------------------------------------
+runStartupScript () {
+   if [ -n "$network_startup" -a  -f "$network_startup" ] ; then
+      logMessage LOG "Running startup script '"$network_startup"' ..."	
+      . $network_startup
+   fi
+}
+
+#-------------------------------------------------------------------------------
+# Create hosts based on
+#   hostNum
+#   hostName
+#   hostMode
+#-------------------------------------------------------------------------------
+createHosts () {
+   for hn in ${hostName[@]}
+   do
+      createHost_${hostMode[$hn]} $hn
+   done      
+}
+
+#-------------------------------------------------------------------------------
+# Kill hosts based on
+#   hostNum
+#   hostName
+#   hostMode
+#-------------------------------------------------------------------------------
+killHosts () {
+   for hn in ${hostName[@]}
+   do
+      killHost_${hostMode[$hn]} $hn
+   done      
+}
+
+#-------------------------------------------------------------------------------
+# Add an interface to the list
+#   $1 : host
+#   $2 : interface
+#-------------------------------------------------------------------------------
+yaneAddInterface () {
+   if [ ""${interfaces["$1:$2"]} == "$1:$2" ] ; then
+      logMessage  ERR "Interface $1:$2 already defined !"
+      exitYane
+   fi
+   
+   interfaces["$1:$2"]="$1:$2"
+}
+
+#-------------------------------------------------------------------------------
+# Create a p2p link
+# Format h:i[:@]!h:i[:@]
+# 
+#-------------------------------------------------------------------------------
+createLink () {
+   l=$1
+   logMessage LOG Creating link $l
+   src=`echo $l| cut -d! -f1`
+   srch=`echo $src|cut -d: -f1`
+   if [ -z ""$srch ] ; then
+      logMessage ERR "*** No source host defined in '$l'"
+      exit
+   fi
+   if [ -z ""`$IP netns list|grep $srch` ] ; then
+      logMessage ERR "*** Unknown host '$srch'"
+      exit
+   fi
+   srci=`echo $src|cut -d: -f2`
+   if [ -z ""$srci ] ; then
+      logMessage ERR "*** No source interface defined in '$l'"
+      exit
+   fi
+   IFLIST="$IFLIST $srch:$srci"
+   srca=`echo $src|cut -d: -f3`
+
+   dst=`echo $l| cut -d! -f2`
+   dsth=`echo $dst|cut -d: -f1`
+   if [ -z ""$dsth ] ; then
+      logMessage ERR "*** No destination host defined in '$l'"
+      exit
+   fi
+   if [ -z ""`$IP netns list|grep $dsth` ] ; then
+      logMessage ERR "*** Unknown host '$dsth'"
+      exit
+   fi
+   dsti=`echo $dst|cut -d: -f2`
+   if [ -z ""$dsti ] ; then
+      logMessage ERR "*** No destination interface defined in '$l'"
+      exit
+   fi
+   IFLIST="$IFLIST $dsth:$dsti"
+   dsta=`echo $dst|cut -d: -f3`
+   logMessage LOG "  . $srch ($srci)  <-> $dsth ($dsti)"
+   if [ -n ""$srca ] ; then
+      logMessage LOG "    $srch : $srca"
+   fi   
+   if [ -n ""$dsta ] ; then
+      logMessage LOG "    $dsth : $dsta"
+   fi
+
+   # Register interfaces
+   yaneAddInterface $srch $srci
+   yaneAddInterface $dsth $dsti
+
+   # WARNING : namespace to namespace only 
+   $IP netns exec $srch $IP link add $srci type veth peer name $dsti netns $dsth
+   $IP netns exec $srch $IP link set $srci up
+   $IP netns exec $dsth $IP link set $dsti up
+   if [ -n ""$srca ] ; then
+      $IP netns exec $srch $IP addr add $srca dev $srci
+   fi
+   if [ -n ""$dsta ] ; then
+      $IP netns exec $dsth $IP addr add $dsta dev $dsti
+   fi    
+}
+
+
+#-------------------------------------------------------------------------------
+# Kill a p2p link
+#-------------------------------------------------------------------------------
+killLink () {
+   logMessage ERR "killLink not yet implemented"
+}
+
+#-------------------------------------------------------------------------------
+# Create p2p links
+#-------------------------------------------------------------------------------
+createLinks () {
+   for link in ${p2pLinks[@]}
+   do
+      createLink "$link"
+   done      
+}
+
+#-------------------------------------------------------------------------------
+# Kill p2p links
+#-------------------------------------------------------------------------------
+killLinks () {
+   for link in ${network_links[@]}
+   do
+      killLink "$link"
+   done      
+}
+
+#-------------------------------------------------------------------------------
+# Booting up the network
+#-------------------------------------------------------------------------------
+yaneRunNetwork () {
+   logMessage LOG "Starting network"
+
+   runStartupScript
+   createHosts    
+   createLinks
+   yaneStartSnooping
+}
+
+#-------------------------------------------------------------------------------
+# Shutting down the network
+#-------------------------------------------------------------------------------
+killNetwork () {
+   logMessage LOG "Shutting down network"
+
+   yaneKillSnooping
+   yaneKillConsoles
+   killLinks
+   killHosts
+}
+
+#-------------------------------------------------------------------------------
+# Display hosts
+#-------------------------------------------------------------------------------
+displayHosts () {
+   for hn in ${network_hosts__name[@]}
+   do
+      echo "[${hostNum[$hn]}]  $hn mode ${hostMode[$hn]}"
+   done
+    
+}
+
+#-------------------------------------------------------------------------------
+# Cleanup before exit
+#-------------------------------------------------------------------------------
+cleanup () {
+   $RM $TMP_CFG_FILE > /dev/null 2>&1 || $TRUE
+}
+
+yaneLoadModules
+#-------------------------------------------------------------------------------
+# Parse command line options
+#-------------------------------------------------------------------------------
+while [[ $# > 0 ]] ;
+do
+   case "$1" in
+      -c )
+	 shift
+         buildNetworkFromFile_yaml $NET_CONFIG_FILE
+	 yaneOpenConsole "$1"
+	 exitYane
+      ;;
+      -d )
+          parse_yaml $NET_CONFIG_FILE
+          DEBUG=True
+	 ;;
+      -f )
+	 shift
+         NET_CONFIG_FILE="$1"
+      ;;
+      -k )
+         buildNetworkFromFile_yaml $NET_CONFIG_FILE
+         killNetwork
+	 exitYane
+      ;;
+      -l )
+	  logMessage ERR "Root is $ROOTDIR"
+	  exit
+      ;;
+      -n )
+         PRETEND=TRUE
+         VERBOSE=TRUE
+	 echo Pretending
+      ;;
+      -v )
+         VERBOSE=True
+      ;;
+      -h )
+         $CAT << EOF
+What ?
+   Yet Another Netork Emulator !?
+
+   Yes, by Manu Chaput. Version : $YANE_VERSION
+
+Usage
+   yane [-c] [-v] [-w]
+
+Options
+   -c <host>    open a terminal on host then exit
+   -f <file>    use file as config
+   -h           help
+   -v           be verbose
+   -w <host>    open a forked terminal in a window on host
+
+Modules
+   ${modules[@]}
+EOF
+	 exit
+      ;;
+      * )
+	  echo Unknown option $1
+      ;;
+   esac
+   shift
+done
+
+
+#-------------------------------------------------------------------------------
+# Parse network config and run the network
+#-------------------------------------------------------------------------------
+
+buildNetworkFromFile_yaml $NET_CONFIG_FILE
+
+yaneRunNetwork
+
+yaneOpenConsoleWindows
+
+exitYane

@@ -1,0 +1,60 @@
+#!/bin/bash
+#===============================================================================
+# Yane module for console management
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# Open a console in the shell
+#   $1 : hostName
+#-------------------------------------------------------------------------------
+yaneOpenConsole () {
+   c=$(eval yaneConsoleCmd_${hostMode[$1]} $1)
+   logMessage LOG "Running console '$c'" 
+   $c
+}
+
+#-------------------------------------------------------------------------------
+# Open a console in a window
+#   $1 : hostName
+#   $2 : terminal (eg /usr/bin/xterm)
+#
+# WARNING : suits xterm only !!
+#-------------------------------------------------------------------------------
+yaneOpenConsoleWindow () {
+   t=${2:-$XTERM}
+   c=$(eval yaneConsoleCmd_${hostMode[$1]} $1)
+
+   logMessage LOG "Running console '$c' in terminal '$t'" 
+
+   $t -title $1 -e $c &
+
+   echo $! >> ./.yane_module_consoles.pid
+}
+
+#-------------------------------------------------------------------------------
+# Open console on listed hosts
+#-------------------------------------------------------------------------------
+yaneOpenConsoleWindows () {
+   logMessage LOG "Opening consoles"
+
+   for hn in ${consHost[@]}
+   do
+      yaneOpenConsoleWindow $hn
+   done
+}
+
+#-------------------------------------------------------------------------------
+# Kill all open consoles
+#-------------------------------------------------------------------------------
+yaneKillConsoles () {
+   logMessage LOG "Kill consoles"
+   
+   if [ -f ./.yane_module_consoles.pid ] ; then 
+      for c in `cat ./.yane_module_consoles.pid`
+      do
+          $KILL $c
+      done
+      $RM ./.yane_module_consoles.pid
+   fi
+}
+

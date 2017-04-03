@@ -1,0 +1,107 @@
+#!/bin/bash
+#===============================================================================
+# Yaml module for yane
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# Parse a YAML config file. Thanks to
+# https://gist.github.com/DinoChiesa/3e3c3866b51290f31243a
+# (could be replaced with the following)
+# http://stackoverflow.com/questions/5014632/how-can-i-parse-a-yaml-file-from-a-linux-shell-script
+#-------------------------------------------------------------------------------
+parse_yaml() {
+    local prefix=$2
+    local s
+    local w
+    local fs
+    s='[[:space:]]*'
+    w='[a-zA-Z0-9_]*'
+    fs="$(echo @|tr @ '\034')"
+    sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
+	-e "s|^\($s\)\($w\)$s[:-]$s\(.*\)$s\$|\1$fs\2$fs\3|p" "$1" |awk -F"$fs" '{
+      indent = length($1)/2;
+      if (length($2) == 0) { conj[indent]="+";} else {conj[indent]="";}
+      vname[indent] = $2;
+      for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+              vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+              printf("%s%s%s%s=(\"%s\")\n", "'"$prefix"'",vn, $2, conj[indent-1],$3);
+      }
+    }' | sed 's/_=/+=/g'
+}
+
+function parse_yaml_2 {
+    local prefix=$2
+    local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+    sed -ne "s|^\($s\):|\1|" \
+	-e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+	-e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+	   awk -F$fs '{
+      indent = length($1)/2;
+      vname[indent] = $2;
+      for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+      }
+   }'
+}
+
+#-------------------------------------------------------------------------------
+# Read network config.
+#
+# This function won't run anything. It will build the following variables
+#
+# hostNum      array (name indexed) of host number
+# hostName     array (name indexed) of host name (a bit useless !)
+# hostMode     array (name indexed) of host mode
+#
+# consHost     arra of host name to run console
+#-------------------------------------------------------------------------------
+buildNetworkFromFile_yaml () {
+   # Parse the config file
+   eval $(parse_yaml $1) 2> /dev/null
+
+   # Build the host lists
+   for idx in ${!network_hosts__name[@]}
+   do
+      hostName["${network_hosts__name[$idx]}"]="${network_hosts__name[$idx]}" # a bit useless, I know
+      hostNum["${network_hosts__name[$idx]}"]=$idx 
+      hostMode["${network_hosts__name[$idx]}"]=${network_hosts__mode[$idx]}
+   done
+
+   # Build the console list
+   if [ "$network_consoles" == "all" ] ; then
+      for idx in ${hostName[@]}
+      do
+         consHost[$idx]=$idx
+      done
+   else 
+      for idx in ${network_consoles[@]}
+      do
+         if [ "${hostName[$idx]}" == "$idx" ]  ; then
+             consHost[$idx]=$idx
+         else 
+             logMessage ERR "Cannot open console on unknown host '$idx' ..."
+         fi
+      done
+   fi
+
+   # Build the p2pLinks list
+   for idx in ${network_links[@]}
+   do
+      p2pLinks[$idx]=$idx
+   done
+
+   # Build the dumpif list
+   for idx in ${network_dumpif[@]}
+   do
+      hn=`echo $idx| cut -d: -f1`
+      if [ "${hostName[$hn]}" == "$hn" -o "$idx" == "all" ]  ; then
+          dumpIf[$idx]=$idx
+      else 
+          logMessage ERR "Cannot snoop on unknown host '$hn' ..."
+      fi
+   done
+}
+
