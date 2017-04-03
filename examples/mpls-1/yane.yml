@@ -1,0 +1,37 @@
+network :
+  name: mpls-1
+  version: 1.0
+  startup: run-before.sh
+  hosts:
+    - 
+      name: host-a
+      mode: namespace
+    -
+      name: host-b
+      mode: namespace
+    -
+      name: ler-i
+      mode: namespace
+    -
+      name: ler-e
+      mode: namespace
+    -
+      name: lsr-1
+      mode: namespace
+    -
+      name: lsr-2
+      mode: namespace
+
+  links :
+    - host-a:v0:192.168.10.10/24!ler-i:v0:192.168.10.4/24
+    - ler-i:v1:192.168.20.4/24!lsr-1:v1:192.168.20.1/24
+    - ler-i:v2:192.168.40.4/24!lsr-2:v1:192.168.40.2/24
+    - lsr-1:v0:192.168.30.1/24!ler-e:v1:192.168.30.3/24
+    - lsr-2:v0:192.168.50.2/24!ler-e:v2:192.168.50.3/24
+    - ler-e:v0:192.168.60.3/24!host-b:v1:192.168.60.10/24
+
+  consoles :
+    - all
+    
+  dumpif :
+    - all

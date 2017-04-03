@@ -1,0 +1,28 @@
+# Vrac
+*~
+*.log
+*.aux
+*.toc
+*.pdf
+
+# Object files
+*.o
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Répertoires générés
+DOCS/html
+DOCS/latex
