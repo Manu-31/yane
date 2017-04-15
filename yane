@@ -10,7 +10,8 @@
 #    ??? : - Doc
 #          - install procedure
 #-------------------------------------------------------------------------------
-YANE_VERSION="0.1"   # First test
+#YANE_VERSION="0.1"    # First test
+YANE_VERSION="0.1.1"   # Minor bug correction
 
 #-------------------------------------------------------------------------------
 # Main commands (do not trust $PATH)
@@ -41,6 +42,9 @@ VERBOSE=False
 NET_CONFIG_FILE=yane.yml
 TMP_CFG_FILE=./yane.$$
 
+#-------------------------------------------------------------------------------
+# Some variables
+#-------------------------------------------------------------------------------
 declare -A hostNum       # Array of host numbers : 0 1, ...
 declare -A hostName      # Array of host names
 declare -A hostMode      # Array of host mode
@@ -49,6 +53,9 @@ declare -A p2pLinks      # Array of p2p links
 declare -A interfaces    # Array of known interfaces
 declare -A dumpIf        # Array of interface to snoop
 declare -A modules       # Array o loaded modules
+
+FIFO_ROOT=/tmp/nssi
+TCPDUMP_PID_FILE=./.tcpdump-pids
 
 #===============================================================================
 # General helper functions
@@ -114,9 +121,9 @@ yaneLoadModules() {
 #===============================================================================
 yaneStartSnooping () {
     dumpFifo=""
-    $RM -rf /tmp/nssi > /dev/null 2>&1 ||$TRUE
-    $MKDIR /tmp/nssi > /dev/null 2>&1 ||$TRUE
-    $RM ./.tcpdump-pids > /dev/null 2>&1 ||$TRUE
+    $RM -rf $FIFO_ROOT > /dev/null 2>&1 ||$TRUE
+    $MKDIR $FIFO_ROOT > /dev/null 2>&1 ||$TRUE
+    $RM $TCPDUMP_PID_FILE > /dev/null 2>&1 ||$TRUE
 
     if [ "${dumpIf['all']}" == "all" ] ; then
        unset dumpIf["all"]
@@ -143,11 +150,11 @@ yaneStartSnooping () {
 	   exit
        fi
 
-       $MKDIR /tmp/nssi/$h > /dev/null 2>&1 ||$TRUE
-       $MKFIFO /tmp/nssi/$h/$i
+       $MKDIR $FIFO_ROOT/$h > /dev/null 2>&1 ||$TRUE
+       $MKFIFO $FIFO_ROOT/$h/$i
        
-       $IP netns exec $h $YANE_ROOT_DIR/yane_run_tcpdump $i /tmp/nssi/$h/$i > /dev/null 2>&1 & 
-       echo $! >> ./.tcpdump-pids
+       $IP netns exec $h $YANE_ROOT_DIR/yane_run_tcpdump $i $FIFO_ROOT/$h/$i > /dev/null 2>&1 & 
+       echo $! >> $TCPDUMP_PID_FILE
     done
 
    if [ ${#dumpIf[@]} -gt 0 ] ; then
@@ -156,7 +163,7 @@ yaneStartSnooping () {
       for dif in ${dumpIf[@]} ; do
           h=`echo $dif|cut -d: -f1`
           i=`echo $dif|cut -d: -f2`
-	  echo -n "-i /tmp/nssi/$h/$i "
+	  echo -n "-i $FIFO_ROOT/$h/$i "
       done
       echo
    fi
@@ -365,6 +372,9 @@ displayHosts () {
 #-------------------------------------------------------------------------------
 cleanup () {
    $RM $TMP_CFG_FILE > /dev/null 2>&1 || $TRUE
+   $RM -rf $FIFO_ROOT > /dev/null 2>&1 ||$TRUE
+   $RM $TCPDUMP_PID_FILE > /dev/null 2>&1 ||$TRUE
+
 }
 
 yaneLoadModules
