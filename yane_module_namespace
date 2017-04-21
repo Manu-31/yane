@@ -32,4 +32,31 @@ yaneConsoleCmd_namespace() {
    echo "$IP netns exec $1 $BASH"
 }
 
+#-------------------------------------------------------------------------------
+# add an interface to an host
+#    $1 : hostname
+#    $2 : interface name (already created)
+#    $3 : IPv4 address (or "")
+#    $4 : namespace in which $2 is defined
+#-------------------------------------------------------------------------------
+yaneAddHostInterface_namespace() {
+   logMessage LOG "Adding int '$2' from '$4' in namespace $1"
+
+   $IP netns exec $4 $IP link set $2 netns $1
+   if [ -n "$3" ] ; then
+      $IP netns exec $1 $IP link set $2 up
+      $IP netns exec $1 $IP addr add $3 dev $2
+   fi
+}
+
+#-------------------------------------------------------------------------------
+# Have we created host $1 ?
+#-------------------------------------------------------------------------------
+yaneHostExists_namespace() {
+   if [ -z ""`$IP netns list|grep $srch` ] ; then
+      return 1
+   else
+      return 0
+   fi
+}
 

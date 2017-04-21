@@ -2,16 +2,20 @@
 #-------------------------------------------------------------------------------
 #  yane (Yet Another Network Emulator !) by E. Chaput
 #
+#    0.1   : - put it on github
+#    0.2   : - bridges
+#
 #  TBD
-#    0.1 : - put it on github
-#    0.2 : - another virt tool
-#          - remove WARNINGs (namespace specific parts)
-#    0.3 : - bridges
-#    ??? : - Doc
-#          - install procedure
+#    0.2.1 : - introduce session (so that yane -k can kill the
+#            current (or any) session : remove netns, ...
+#    0.3   : - another virt tool
+#            - remove WARNINGs (namespace specific parts)
+#    ???   : - Doc
+#            - install procedure
 #-------------------------------------------------------------------------------
-#YANE_VERSION="0.1"    # First test
-YANE_VERSION="0.1.1"   # Minor bug correction
+#YANE_VERSION="0.1"     # First test
+#YANE_VERSION="0.1.1"   # Minor bug correction
+YANE_VERSION="0.2"      # Introducing bridges
 
 #-------------------------------------------------------------------------------
 # Main commands (do not trust $PATH)
@@ -41,6 +45,7 @@ DEBUG=False
 VERBOSE=False
 NET_CONFIG_FILE=yane.yml
 TMP_CFG_FILE=./yane.$$
+YANE_DEFAULT_NETNS=yans-$$
 
 #-------------------------------------------------------------------------------
 # Some variables
@@ -100,6 +105,74 @@ exitYane () {
 }
 
 #-------------------------------------------------------------------------------
+# Display hosts
+#-------------------------------------------------------------------------------
+yaneDisplayHosts () {
+   for hn in ${network_hosts__name[@]}
+   do
+      echo "[${hostNum[$hn]}]  $hn mode ${hostMode[$hn]}"
+   done
+}
+
+#-------------------------------------------------------------------------------
+# Have we created host $1 ?
+#-------------------------------------------------------------------------------
+yaneHostExists() {
+   if [ "${hostName["$1"]}" != "$1" ] ; then
+      return 1
+   fi
+   return $(yaneHostExists_${hostMode["$1"]} "$1")
+}
+
+yaneHostUnknown() {
+   if $(yaneHostExists "$1") ; then
+      return 1
+   else
+      return 0
+   fi
+}
+
+#-------------------------------------------------------------------------------
+# Can $1 host a new $2 interface ?
+#-------------------------------------------------------------------------------
+yaneDeviceCanHostInterface() {
+   # First check : is this interface a new one ?
+   if [ ""${interfaces["$1:$2"]} == "$1:$2" ] ; then
+      return 1
+   fi
+
+   # If $1 is an host
+   if $(yaneHostExists "$1") ; then
+      # WARNING : should check for $2
+      return 0
+   fi
+   
+   # If $1 is a bridge
+   if $(yaneBridgeExists "$1") ; then
+      # WARNING : should check for $2
+      return 0
+   fi
+    
+   return 1
+}
+
+#-------------------------------------------------------------------------------
+#   Display network elements (debug purpose)
+#-------------------------------------------------------------------------------
+yaneDisplayNetwork () {
+   echo "Hosts : "
+   yaneDisplayHosts
+
+   echo "Bridges : "
+   for idx in ${!bridgeName[@]} ; do
+      br=${bridgeName[$idx]} 
+      echo "   . [$idx] '$br'"
+      il=${bridgeInterfaces["$br"]}
+      echo "       Interfaces : '$il'"
+   done
+}
+
+#-------------------------------------------------------------------------------
 # Loading modules
 #-------------------------------------------------------------------------------
 yaneLoadModules() {
@@ -128,7 +201,10 @@ yaneStartSnooping () {
     if [ "${dumpIf['all']}" == "all" ] ; then
        unset dumpIf["all"]
        for i in ${interfaces[@]} ; do
-	   dumpIf["$i"]="$i"
+          h=`echo $i| cut -d: -f1`
+          if [ "${hostName[$h]}" == "$h" ] ; then 
+             dumpIf["$i"]="$i"
+          fi
        done
     fi
 
@@ -142,11 +218,11 @@ yaneStartSnooping () {
 	   exit
        fi
        if [ -z ""`$IP netns list|grep $h` ] ; then
-	   echo "*** Unknown snoop host '$h'"
+	   logMessage ERR "Unknown snoop host '$h'"
 	   exit
        fi
        if [ -z ""$i ] ; then
-	   logMessage ERR "*** No snoop interface defined in '$snoopi'"
+	   logMessage ERR "No snoop interface defined in '$snoopi'"
 	   exit
        fi
 
@@ -245,37 +321,42 @@ yaneAddInterface () {
 createLink () {
    l=$1
    logMessage LOG Creating link $l
+
    src=`echo $l| cut -d! -f1`
    srch=`echo $src|cut -d: -f1`
    if [ -z ""$srch ] ; then
-      logMessage ERR "*** No source host defined in '$l'"
-      exit
-   fi
-   if [ -z ""`$IP netns list|grep $srch` ] ; then
-      logMessage ERR "*** Unknown host '$srch'"
+      logMessage ERR "No source host defined in '$l'"
       exit
    fi
    srci=`echo $src|cut -d: -f2`
    if [ -z ""$srci ] ; then
-      logMessage ERR "*** No source interface defined in '$l'"
+      logMessage ERR "No source interface defined in '$l'"
+      exit
+   fi
+   # WARNING : first check $srch type
+   if $(yaneDeviceCanHostInterface "$srch" "$srci") ; then
+      logMessage DEB "Source device '$srch' found"
+   else
+      logMessage ERR "Source device '$srch' can not accept interface '$srci'"
       exit
    fi
    IFLIST="$IFLIST $srch:$srci"
    srca=`echo $src|cut -d: -f3`
-
    dst=`echo $l| cut -d! -f2`
    dsth=`echo $dst|cut -d: -f1`
    if [ -z ""$dsth ] ; then
-      logMessage ERR "*** No destination host defined in '$l'"
-      exit
-   fi
-   if [ -z ""`$IP netns list|grep $dsth` ] ; then
-      logMessage ERR "*** Unknown host '$dsth'"
+      logMessage ERR "No destination host defined in '$l'"
       exit
    fi
    dsti=`echo $dst|cut -d: -f2`
    if [ -z ""$dsti ] ; then
-      logMessage ERR "*** No destination interface defined in '$l'"
+      logMessage ERR "No destination interface defined in '$l'"
+      exit
+   fi
+   if $(yaneDeviceCanHostInterface "$dsth" "$dsti") ; then
+      logMessage DEB "Destination device '$dsth' found"
+   else
+      logMessage ERR "Destination device '$dsth' can not accept interface '$dsti'"
       exit
    fi
    IFLIST="$IFLIST $dsth:$dsti"
@@ -292,18 +373,33 @@ createLink () {
    yaneAddInterface $srch $srci
    yaneAddInterface $dsth $dsti
 
-   # WARNING : namespace to namespace only 
-   $IP netns exec $srch $IP link add $srci type veth peer name $dsti netns $dsth
-   $IP netns exec $srch $IP link set $srci up
-   $IP netns exec $dsth $IP link set $dsti up
-   if [ -n ""$srca ] ; then
-      $IP netns exec $srch $IP addr add $srca dev $srci
+    # We create temporary namespaces
+   $IP netns del yane-src-$$ > /dev/null 2>&1
+   $IP netns del yane-dst-$$ > /dev/null 2>&1
+   $IP netns add yane-src-$$ 
+   $IP netns add yane-dst-$$
+   
+   # Interfaces creation
+   $IP netns exec yane-src-$$ $IP link add $srci type veth peer name $dsti netns yane-dst-$$
+    
+   # Search for source host
+   if [[ ${hostMode["$srch"]} ]] ; then
+       logMessage DEB "source host found"
+       yaneAddHostInterface_${hostMode[$srch]} $srch $srci "$srca" yane-src-$$
    fi
-   if [ -n ""$dsta ] ; then
-      $IP netns exec $dsth $IP addr add $dsta dev $dsti
-   fi    
+   # Search for destination host
+   if [[ ${hostMode["$dsth"]} ]] ; then
+      logMessage DEB "destination host found"
+      yaneAddHostInterface_${hostMode[$dsth]} $dsth $dsti "$dsta" yane-dst-$$
+   elif $(yaneBridgeExists $dsth) ; then
+      logMessage DEB "destination bridge found"
+      yaneAddBridgeInterface  $dsth $dsti "$dsta" yane-dst-$$
+   fi
+   
+   # We can now delete transiant namespaces
+   $IP netns del yane-src-$$ 
+   $IP netns del yane-dst-$$
 }
-
 
 #-------------------------------------------------------------------------------
 # Kill a p2p link
@@ -338,9 +434,13 @@ killLinks () {
 yaneRunNetwork () {
    logMessage LOG "Starting network"
 
+   # Default namespace
+   $IP netns add $YANE_DEFAULT_NETNS
+
    runStartupScript
    createHosts    
    createLinks
+   yaneCreateBridges
    yaneStartSnooping
 }
 
@@ -354,17 +454,9 @@ killNetwork () {
    yaneKillConsoles
    killLinks
    killHosts
-}
 
-#-------------------------------------------------------------------------------
-# Display hosts
-#-------------------------------------------------------------------------------
-displayHosts () {
-   for hn in ${network_hosts__name[@]}
-   do
-      echo "[${hostNum[$hn]}]  $hn mode ${hostMode[$hn]}"
-   done
-    
+   # Delete default namespace
+   $IP netns del $YANE_DEFAULT_NETNS
 }
 
 #-------------------------------------------------------------------------------
@@ -374,7 +466,6 @@ cleanup () {
    $RM $TMP_CFG_FILE > /dev/null 2>&1 || $TRUE
    $RM -rf $FIFO_ROOT > /dev/null 2>&1 ||$TRUE
    $RM $TCPDUMP_PID_FILE > /dev/null 2>&1 ||$TRUE
-
 }
 
 yaneLoadModules
@@ -411,6 +502,11 @@ do
          PRETEND=TRUE
          VERBOSE=TRUE
 	 echo Pretending
+      ;;
+      -p )
+         buildNetworkFromFile_yaml $NET_CONFIG_FILE
+         yaneDisplayNetwork
+         exitYane
       ;;
       -v )
          VERBOSE=True

@@ -1,0 +1,74 @@
+#!/bin/bash
+#===============================================================================
+# Yane module for bridge management
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# Create a bridge
+#   $1 : name
+# WARNING todo : check if name is ok
+#-------------------------------------------------------------------------------
+yaneCreateBridge () {
+   logMessage DEB "Creation of bridge '$1' ..."
+   $IP netns exec $YANE_DEFAULT_NETNS $IP link add "$1" type bridge
+   $IP netns exec $YANE_DEFAULT_NETNS $IP link set "$1" up
+ }
+
+#-------------------------------------------------------------------------------
+# Create bridges from the list
+#-------------------------------------------------------------------------------
+yaneCreateBridges () {
+   logMessage DEB "Creating bridges ..."
+
+   for idx in ${!bridgeName[@]} ; do
+      br=${bridgeName[$idx]}
+
+      # Actually create the bridge 
+      yaneCreateBridge $br
+
+      intList=${bridgeInterfaces["$br"]}
+      # Each interface is part of a p2plink
+      num=0
+      for i in `echo $intList | sed -e "s/!/ /g"` ; do
+	 logMessage DEB "Creating '$i!$br:${br}i$num'"
+	 createLink "$i!$br:${br}i$num"
+         num=`expr $num + 1`
+      done
+	       
+   done
+       
+}
+
+#-------------------------------------------------------------------------------
+# Have we created bridge $1 ?
+#-------------------------------------------------------------------------------
+yaneBridgeExists() {
+   if [ "${bridgeName["$1"]}" != "$1" ] ; then
+      return 1
+   fi
+
+   $IP netns exec $YANE_DEFAULT_NETNS $IP link show $1 > /dev/null 2>&1
+   
+   return $?
+}
+
+#-------------------------------------------------------------------------------
+# add an interface to a bridge
+#    $1 : bridge name
+#    $2 : interface name (already created)
+#    $3 : IPv5 address (or "")
+#    $4 : namespace in which $2 is defined
+#-------------------------------------------------------------------------------
+yaneAddBridgeInterface() {
+   logMessage LOG "Adding int '$2' from '$4' in bridge '$1'"
+
+   # Bing it back from its netns
+   $IP netns exec $4 $IP link set $2 netns $YANE_DEFAULT_NETNS
+   
+   $IP netns exec $YANE_DEFAULT_NETNS $IP link set $2 master $1
+   $IP netns exec $YANE_DEFAULT_NETNS $IP link set $2 up
+   if [ -n "$3" ] ; then
+      $IP netns exec $YANE_DEFAULT_NETNS $IP addr add $3 dev $2
+   fi
+}
+

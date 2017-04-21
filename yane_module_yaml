@@ -55,8 +55,11 @@ function parse_yaml_2 {
 # hostNum      array (name indexed) of host number
 # hostName     array (name indexed) of host name (a bit useless !)
 # hostMode     array (name indexed) of host mode
+# p2plinks     array of point to point links
+# consHost     array of host name to run console
 #
-# consHost     arra of host name to run console
+# bridgeName            array (name indexed) of BridgeName
+# bridgeInterfaces      array (name indexed) of BridgeInterface
 #-------------------------------------------------------------------------------
 buildNetworkFromFile_yaml () {
    # Parse the config file
@@ -91,6 +94,14 @@ buildNetworkFromFile_yaml () {
    for idx in ${network_links[@]}
    do
       p2pLinks[$idx]=$idx
+   done
+
+   # Build the bridges related lists
+   for idx in ${network_bridges__name[@]}
+   do
+      bridgeName[$idx]="${network_bridges__name[$idx]}"
+      bridgeInterfaces[$idx]="${network_bridges__interfaces[$idx]}"
+      echo  "$idx -> ${bridgeName[$idx]}  ${bridgeInterfaces[$idx]}"
    done
 
    # Build the dumpif list
