@@ -2,7 +2,26 @@ Yet Another Network Emulator !?
 
 Yes !
 
+--------------------------------------------------------------------
+--  Usage
+--------------------------------------------------------------------
 
+* Basic usage
+
+Run a session
+
+$ yane
+
+Kill the session
+
+$ yane -k
+
+* Configuration
+
+A yaml file describes the network
+
+--------------------------------------------------------------------
+--  
 --------------------------------------------------------------------
 
 * General structure
@@ -18,6 +37,19 @@ Yes !
    Creation of the multiple parts of the network (hosts, bridges,
 links, ...)
 
+- Sessions
+
+   Multiple sessions can be run simultaneously. A list of active
+sessions can be seen by
+
+$ yane -l
+
+   A specific session can be killed with
+
+$ yane -s id -k
+
+   The -s id option is not needed if a single session is running
+   
 
 * Configuration
 

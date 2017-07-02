@@ -24,7 +24,7 @@ yaneCreateBridges () {
       br=${bridgeName[$idx]}
 
       # Actually create the bridge 
-      yaneCreateBridge $br
+      yaneCreateBridge ${SESSION_ID}_$br
 
       intList=${bridgeInterfaces["$br"]}
       # Each interface is part of a p2plink
@@ -40,14 +40,14 @@ yaneCreateBridges () {
 }
 
 #-------------------------------------------------------------------------------
-# Have we created bridge $1 ?
+# Have we created bridge $1 in $SESSION_ID ?
 #-------------------------------------------------------------------------------
 yaneBridgeExists() {
    if [ "${bridgeName["$1"]}" != "$1" ] ; then
       return 1
    fi
 
-   $IP netns exec $YANE_DEFAULT_NETNS $IP link show $1 > /dev/null 2>&1
+   $IP netns exec $YANE_DEFAULT_NETNS $IP link show ${SESSION_ID}_$1 > /dev/null 2>&1
    
    return $?
 }

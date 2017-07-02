@@ -48,7 +48,7 @@ function parse_yaml_2 {
 }
 
 #-------------------------------------------------------------------------------
-# Read network config.
+# Read network configuration and build network variables.
 #
 # This function won't run anything. It will build the following variables
 #
@@ -101,7 +101,7 @@ buildNetworkFromFile_yaml () {
    do
       bridgeName[$idx]="${network_bridges__name[$idx]}"
       bridgeInterfaces[$idx]="${network_bridges__interfaces[$idx]}"
-      echo  "$idx -> ${bridgeName[$idx]}  ${bridgeInterfaces[$idx]}"
+      logMessage DEB "$idx -> ${bridgeName[$idx]}  ${bridgeInterfaces[$idx]}"
    done
 
    # Build the dumpif list

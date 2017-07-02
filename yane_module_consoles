@@ -14,7 +14,7 @@ yaneOpenConsole () {
 }
 
 #-------------------------------------------------------------------------------
-# Open a console in a window
+# Open a console in a window in $SESSION_ID
 #   $1 : hostName
 #   $2 : terminal (eg /usr/bin/xterm)
 #
@@ -22,13 +22,13 @@ yaneOpenConsole () {
 #-------------------------------------------------------------------------------
 yaneOpenConsoleWindow () {
    t=${2:-$XTERM}
-   c=$(eval yaneConsoleCmd_${hostMode[$1]} $1)
+   c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
 
    logMessage LOG "Running console '$c' in terminal '$t'" 
 
    $t -title $1 -e $c &
 
-   echo $! >> ./.yane_module_consoles.pid
+   echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
 }
 
 #-------------------------------------------------------------------------------
@@ -44,17 +44,17 @@ yaneOpenConsoleWindows () {
 }
 
 #-------------------------------------------------------------------------------
-# Kill all open consoles
+# Kill all open consoles in $SESSION_ID
 #-------------------------------------------------------------------------------
 yaneKillConsoles () {
    logMessage LOG "Kill consoles"
    
-   if [ -f ./.yane_module_consoles.pid ] ; then 
-      for c in `cat ./.yane_module_consoles.pid`
+   if [ -f ./.yane_${SESSION_ID}_module_consoles.pid ] ; then 
+      for c in `cat ./.yane_${SESSION_ID}_module_consoles.pid`
       do
           $KILL $c
       done
-      $RM ./.yane_module_consoles.pid
+      $RM ./.yane_${SESSION_ID}_module_consoles.pid
    fi
 }
 

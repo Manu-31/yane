@@ -53,7 +53,7 @@ yaneAddHostInterface_namespace() {
 # Have we created host $1 ?
 #-------------------------------------------------------------------------------
 yaneHostExists_namespace() {
-   if [ -z ""`$IP netns list|grep $srch` ] ; then
+   if [ -z "`$IP netns list|grep $srch`" ] ; then
       return 1
    else
       return 0
