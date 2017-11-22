@@ -6,6 +6,7 @@
 #    0.2   : - bridges
 #    0.2.1 : - introduce session (so that yane -k can kill the
 #            current (or any) session : remove netns, ...)
+#    0.2.2 : - added filesystem population
 #
 #  TBD
 #    0.2.2 : - clearly separate network creation and startup
@@ -19,7 +20,8 @@
 #YANE_VERSION="0.1"     # First test
 #YANE_VERSION="0.1.1"   # Minor bug correction
 #YANE_VERSION="0.2"     # Introducing bridges
-YANE_VERSION="0.2.1"    # First session management
+#YANE_VERSION="0.2.1"   # First session management
+YANE_VERSION="0.2.2"    # First file system management
 
 #-------------------------------------------------------------------------------
 # Main commands (do not trust $PATH)
@@ -27,6 +29,7 @@ YANE_VERSION="0.2.1"    # First session management
 BASH=/bin/bash
 BASENAME=/usr/bin/basename
 CAT=/bin/cat
+CP=/bin/cp
 DIRNAME=/usr/bin/dirname
 GREP=/bin/grep
 IP=/sbin/ip
@@ -60,6 +63,7 @@ YANE_DEFAULT_NETNS=yans-$$
 declare -A hostNum       # Array of host numbers : 0 1, ...
 declare -A hostName      # Array of host names
 declare -A hostMode      # Array of host mode
+declare -A hostFiles     # Array of host FS
 declare -A consHost      # Array of hosts to run console on
 declare -A p2pLinks      # Array of p2p links
 declare -A interfaces    # Array of known interfaces
@@ -176,6 +180,23 @@ yaneDisplayNetwork () {
       echo "   . [$idx] '$br'"
       il=${bridgeInterfaces["$br"]}
       echo "       Interfaces : '$il'"
+   done
+}
+
+#-------------------------------------------------------------------------------
+#
+#-------------------------------------------------------------------------------
+yanePopulateFileSystems () {
+   for hn in ${hostName[@]}
+   do
+       fsSpec=${hostFiles["$hn"]}
+       if [ -n "$fsSpec" ] ; then
+          echo Populating FS for $hn
+          src=`echo $fsSpec|cut -d: -f1`
+          dst=`echo $fsSpec|cut -d: -f2`
+          echo Copying files from $src to $dst
+	  yaneHostPopulateFS_${hostMode["$hn"]} ${SESSION_ID}_$hn $src $dst
+       fi
    done
 }
 
@@ -467,6 +488,10 @@ yaneBootNetworkSession () {
    # Creation of the default namespace
    YANE_DEFAULT_NETNS=yans-$SESSION_ID
    $IP netns add $YANE_DEFAULT_NETNS
+
+   # Populating filesystems if needed
+   logMessage DEB "Populating filesystems ..."
+   yanePopulateFileSystems
 
    # We run the startup script (if any). The session ID can be
    # used to avoid "collisions"

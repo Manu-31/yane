@@ -55,6 +55,7 @@ function parse_yaml_2 {
 # hostNum      array (name indexed) of host number
 # hostName     array (name indexed) of host name (a bit useless !)
 # hostMode     array (name indexed) of host mode
+# hostFiles    array (name indexed) of host files
 # p2plinks     array of point to point links
 # consHost     array of host name to run console
 #
@@ -71,6 +72,7 @@ buildNetworkFromFile_yaml () {
       hostName["${network_hosts__name[$idx]}"]="${network_hosts__name[$idx]}" # a bit useless, I know
       hostNum["${network_hosts__name[$idx]}"]=$idx 
       hostMode["${network_hosts__name[$idx]}"]=${network_hosts__mode[$idx]}
+      hostFiles["${network_hosts__name[$idx]}"]=${network_hosts__files[$idx]}
    done
 
    # Build the console list

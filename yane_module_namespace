@@ -21,7 +21,9 @@ createHost_namespace () {
 killHost_namespace () {
    logMessage LOG "Killing namespace $1"
 
-   $IP netns del $1 > /dev/null 2>&1 ||$TRUE   
+   $IP netns del $1 > /dev/null 2>&1 ||$TRUE
+
+   $RM -rf /etc/netns/$1
 }
 
 #-------------------------------------------------------------------------------
@@ -60,3 +62,14 @@ yaneHostExists_namespace() {
    fi
 }
 
+#-------------------------------------------------------------------------------
+# Populate the filesystem of an host
+#    $1 : hostname
+#    $2 : source basedir in the host filsystem (may be relative to .)
+#    $3 : destination basedir in the guest (must be absolute)
+#-------------------------------------------------------------------------------
+yaneHostPopulateFS_namespace() {
+    echo Copying $2 to $3 in $1
+    $MKDIR /etc/netns/$1
+    $CP -a $2/* /etc/netns/$1
+}
