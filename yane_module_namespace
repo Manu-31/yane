@@ -69,7 +69,7 @@ yaneHostExists_namespace() {
 #    $3 : destination basedir in the guest (must be absolute)
 #-------------------------------------------------------------------------------
 yaneHostPopulateFS_namespace() {
-    echo Copying $2 to $3 in $1
-    $MKDIR /etc/netns/$1
-    $CP -a $2/* /etc/netns/$1
+    logMessage LOG "Copying $2 to $3 in $1"
+    $MKDIR /etc/netns/$1 >/dev/null 2>&1 || $TRUE
+    $CP -a $2/* /etc/netns/$1 >/dev/null 2>&1 || $TRUE
 }

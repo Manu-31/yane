@@ -39,6 +39,7 @@ yaneOpenConsoleWindows () {
 
    for hn in ${consHost[@]}
    do
+      logMessage LOG "Opening console on $hn"
       yaneOpenConsoleWindow $hn
    done
 }

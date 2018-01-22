@@ -1,0 +1,34 @@
+network :
+  name: rfc-2650
+  version: 0.1
+  hosts:
+    - 
+      name: as1-r1
+      mode: namespace
+      files: as1-r1/etc:/etc
+    - 
+      name: as2-r1
+      mode: namespace
+      files: as2-r1/etc:/etc
+    - 
+      name: as2-r2
+      mode: namespace
+      files: as2-r2/etc:/etc
+    - 
+      name: as2-r3
+      mode: namespace
+      files: as2-r3/etc:/etc
+    - 
+      name: as2-r4
+      mode: namespace
+      files: as2-r4/etc:/etc
+
+  links :
+    - as1-r1:v0:7.7.7.1/32!as2-r1:v0:7.7.7.2/31
+
+  consoles :
+    - as1-r1
+    - as2-r1
+    
+  dumpif :
+    - all

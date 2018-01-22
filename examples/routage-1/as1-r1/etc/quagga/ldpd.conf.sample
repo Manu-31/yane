@@ -1,0 +1,10 @@
+! -*- ldp -*-
+!
+! LDPd sample configuration file
+!
+hostname ldpd
+password zebra
+log stdout
+!
+!
+!
