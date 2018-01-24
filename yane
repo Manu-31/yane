@@ -644,7 +644,7 @@ do
       -h )
          $CAT << EOF
 What ?
-   Yet Another Netork Emulator !?
+   Yet Another Network Emulator !?
 
    Yes, by Manu Chaput. Version : $YANE_VERSION
 
