@@ -7,9 +7,9 @@
 #    0.2.1 : - introduce session (so that yane -k can kill the
 #            current (or any) session : remove netns, ...)
 #    0.2.2 : - added filesystem population
+#    0.2.2 : - clearly separate network creation and startup
 #
 #  TBD
-#    0.2.2 : - clearly separate network creation and startup
 #    0.2.3 : - reorganize option parsing
 #    0.3   : - another virt tool
 #            - remove WARNINGs (namespace specific parts)
@@ -328,20 +328,51 @@ createHosts () {
 }
 
 #-------------------------------------------------------------------------------
-# Kill hosts based on
+# Boot hosts based on
 #   Global
 #     SESSION_ID
 #     hostNum
 #     hostName
 #     hostMode
 #-------------------------------------------------------------------------------
-killHosts () {
-   for hn in ${hostName[@]}
-   do
-      killHost_${hostMode[$hn]} ${SESSION_ID}_$hn
+bootHosts () {
+    for hn in ${hostName[@]}
+    do
+      ht=${hostMode[$hn]}
+      logMessage DEB "Booting host '${SESSION_ID}_$hn' (type $ht)"      
+      bootHost_${hostMode[$hn]} ${SESSION_ID}_$hn
    done      
 }
 
+#-------------------------------------------------------------------------------
+# Shutdown hosts based on
+#   Global
+#     SESSION_ID
+#     hostNum
+#     hostName
+#     hostMode
+#-------------------------------------------------------------------------------
+shutdownHosts () {
+   for hn in ${hostName[@]}
+   do
+      shutdownHost_${hostMode[$hn]} ${SESSION_ID}_$hn
+   done      
+}
+
+#-------------------------------------------------------------------------------
+# Delete hosts based on
+#   Global
+#     SESSION_ID
+#     hostNum
+#     hostName
+#     hostMode
+#-------------------------------------------------------------------------------
+deleteHosts () {
+   for hn in ${hostName[@]}
+   do
+      deleteHost_${hostMode[$hn]} ${SESSION_ID}_$hn
+   done      
+}
 #-------------------------------------------------------------------------------
 # Add an interface to the list
 #   $1 : host
@@ -489,6 +520,10 @@ yaneBootNetworkSession () {
    YANE_DEFAULT_NETNS=yans-$SESSION_ID
    $IP netns add $YANE_DEFAULT_NETNS
 
+   # Creating the hosts
+   logMessage DEB "Creating the hosts ..."
+   createHosts    
+
    # Populating filesystems if needed
    logMessage DEB "Populating filesystems ..."
    yanePopulateFileSystems
@@ -500,7 +535,7 @@ yaneBootNetworkSession () {
 
    # Booting up the hosts
    logMessage DEB "Booting up the hosts ..."
-   createHosts    
+   bootHosts    
 
    # Create the bridges
    yaneCreateBridges
@@ -539,8 +574,11 @@ yaneKillNetworkSession () {
    # Kill links
    killLinks
    
-   # Kill hosts
-   killHosts
+   # Shutdown hosts
+   shutdownHosts
+
+   # Delete hosts
+   deleteHosts
 
    # Remove session from list
    $SED -e "/^${SESSION_ID}$/d" ${NET_CONFIG_FILE}.sessions > /tmp/yane-sessions.$$

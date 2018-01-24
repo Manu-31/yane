@@ -15,11 +15,27 @@ createHost_namespace () {
 }
 
 #-------------------------------------------------------------------------------
-# kill host
+# boot host
 #    $1 : hostname
 #-------------------------------------------------------------------------------
-killHost_namespace () {
-   logMessage LOG "Killing namespace $1"
+bootHost_namespace () {
+   logMessage LOG "Booting namespace $1 (nothing done)"
+}
+
+#-------------------------------------------------------------------------------
+# shutdown host
+#    $1 : hostname
+#-------------------------------------------------------------------------------
+shutdownHost_namespace () {
+   logMessage LOG "Shuting down namespace $1"
+}
+
+#-------------------------------------------------------------------------------
+# delete host
+#    $1 : hostname
+#-------------------------------------------------------------------------------
+deleteHost_namespace () {
+   logMessage LOG "Deleting namespace $1"
 
    $IP netns del $1 > /dev/null 2>&1 ||$TRUE
 
