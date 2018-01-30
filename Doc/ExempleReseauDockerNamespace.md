@@ -119,14 +119,14 @@ L'interface veth0 a disparue de l'hôte. On peut vérifier que le namespace stat
 		    link/ether ca:ae:b2:e6:c5:39 brd ff:ff:ff:ff:ff:ff link-netnsid 0
 
 
-Pour la stationB c'est plus hardu car il faut retrouver le namespace network utilisé par le container de docker et le donner a la commande `ip`. Toutefois on sait le faire, j'ai expliqué comment retrouver un namespace associé à son processus. On va d'abord retrouver le PID du container Docker. Ce qui nous permettra d'accéder à son namespace network afin de lui donner l'interface veth1.
+Pour la stationB c'est plus hardu car il faut retrouver le namespace, de type network, utilisé par le container de docker et le donner à la commande `ip`. Hors on sait le faire ! J'ai expliqué comment retrouver un namespace associé à son processus. Pour cela on va d'abord retrouver le PID du container Docker. Ce qui nous permettra d'accéder à son namespace network afin de lui donner l'interface veth1.
 		
 		# docker inspect --format='{{.State.Pid}}' stationB
 		1234
 		
 __Rappel :__ Les namespaces d'un processus se trouve en `/proc/<PID>/ns/`.
 
-La commande `ip` ne peut que manipuler les namespaces qu'elle à créé ou plus précisément : que les namespace se trouvant dans le répertoire `/var/run/netns/`. Comme le namespace de docker ne se trouve pas dans celui-ci on va y créer un lien pointant vers le namespace de notre docker : 
+La commande `ip` ne peut que manipuler les namespaces qu'elle a créé ou plus précisément : que les namespaces se trouvant dans le répertoire `/var/run/netns/`. Comme le namespace de docker ne se trouve pas dans celui-ci on va y créer un lien pointant vers le namespace de notre docker : 
 		
 		# ln -s /proc/1234/ns/net /var/run/netns/stationB
 		
@@ -138,7 +138,7 @@ On peut enfin déplacer l'interface veth1 vers notre docker :
 	
 **Configurer les deux interfaces de chaque machines :**
 
-Pour lancer les commandes suivant vous devez les lancer depuis une des deux stations. Pour cela : `ip netns exec stationA <COMMANDE>` et `# docker exec stationB <COMMANDE>`.
+Pour lancer les commandes suivantes vous devez les lancer depuis une des deux stations. Pour cela : `ip netns exec stationA <COMMANDE>` et `# docker exec stationB <COMMANDE>`.
 
 Sur la stationA :
 		
@@ -172,7 +172,7 @@ Si tout s'est bien déroulé on obtient depuis la stationB :
 4. Compléments :
 ----------------
 
-Je vous conseil d'aller voir ici si vou voulez plus d'info sur les namespaces :
+Je vous conseil ces liens si vous voulez plus d'info sur les namespaces :
 
 * Le man namespaces est très complet.
 * La page (wikipédia)[https://en.wikipedia.org/wiki/Linux_namespaces].
