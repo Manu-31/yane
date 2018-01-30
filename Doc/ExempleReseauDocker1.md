@@ -1,7 +1,7 @@
 Example de réseau Docker :
 ==========================
 
-**Script** : le script TutorielDoubleBridgeDocker.sh correspond et permet de lancer cet example.
+**Script** : le script _TutorielDoubleBridgeDocker.sh_ correspond et permet de lancer cet example.
 
 Détails de la configuration souhaitée :
 ---------------------------------------
