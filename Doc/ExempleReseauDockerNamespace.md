@@ -169,7 +169,7 @@ Si tout s'est bien déroulé on obtient depuis la stationB :
 		round-trip min/avg/max = 0.067/0.072/0.088 ms
 		 
 
-4. Compléments :
+4 - Compléments :
 ----------------
 
 Je vous conseil ces liens si vous voulez plus d'info sur les namespaces :
