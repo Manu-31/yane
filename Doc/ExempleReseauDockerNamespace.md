@@ -99,7 +99,7 @@ Les interfaces ethernet virtuels (veth) sont fonctionnent comme des liens bidire
 		    link/ether ca:ae:b2:e6:c5:39 brd ff:ff:ff:ff:ff:ff
 
 **Attribuer une interface à une machine :**
-Nos interfaces créées sont actuellement sur la machine hôte. Il faut maintenant passer chaque interface à chaque machine. Pour cela la commande `ip link` nous permet de transférer une interface à un namespace particulier. Pour la stationA c'est donc évident :
+Nos interfaces créées sont actuellement sur la machine hôte. Il faut maintenant passer chaque interface à une machine. Pour cela la commande `ip link` nous permet de transférer une interface à un namespace particulier. Pour la stationA c'est donc évident :
 		
 		# ip link set veth0 netns stationA
 
@@ -119,7 +119,7 @@ L'interface veth0 a disparue de l'hôte. On peut vérifier que le namespace stat
 		    link/ether ca:ae:b2:e6:c5:39 brd ff:ff:ff:ff:ff:ff link-netnsid 0
 
 
-Pour la stationB docker c'est plus hardu car il faut retrouver le namespace network utilisé par le container stationB et le donner a `ip`. Toutefois on sait le faire, j'ai expliqué comment retrouver un namespace associé à son processus. On va d'abord retrouver le PID du container Docker. Ce qui nous permettra d'accéder à son namespace network afin de lui donner l'interface veth1.
+Pour la stationB c'est plus hardu car il faut retrouver le namespace network utilisé par le container de docker et le donner a la commande `ip`. Toutefois on sait le faire, j'ai expliqué comment retrouver un namespace associé à son processus. On va d'abord retrouver le PID du container Docker. Ce qui nous permettra d'accéder à son namespace network afin de lui donner l'interface veth1.
 		
 		# docker inspect --format='{{.State.Pid}}' stationB
 		1234
@@ -152,7 +152,7 @@ Sur la stationB :
 		
 **Tester notre réseau :**
 
-Si tous s'est bien déroulé on obtient depuis la stationB :
+Si tout s'est bien déroulé on obtient depuis la stationB :
 
 		# ping 192.168.12.78
 		PING 192.168.12.78 (192.168.12.78): 56 data bytes
@@ -172,10 +172,10 @@ Si tous s'est bien déroulé on obtient depuis la stationB :
 4. Compléments :
 ----------------
 
+Je vous conseil d'aller voir ici si vou voulez plus d'info sur les namespaces :
+
 * Le man namespaces est très complet.
 * La page (wikipédia)[https://en.wikipedia.org/wiki/Linux_namespaces].
-
-
 
 
 
