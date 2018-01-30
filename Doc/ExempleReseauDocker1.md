@@ -1,4 +1,4 @@
-Example de réseau Docker :
+Exemple de réseau Docker :
 ==========================
 
 **Script** : le script _TutorielDoubleBridgeDocker.sh_ correspond et permet de lancer cet example.
@@ -26,7 +26,7 @@ Création des bridges :
 
 		$ docker network create -d bridge --subnet 192.168.1.0/24 br0
 		$ docker network create -d bridge --subnet 192.168.2.0/24 br1
-		
+
 Ces réseaux pour docker sont en fait des bridges. On peut les observer avec `brctl` ou `bridge` :
 
 		$ brctl show
@@ -38,7 +38,7 @@ Ces réseaux pour docker sont en fait des bridges. On peut les observer avec `br
 										vethdbd76cb
 										vethf2c06fe
 		docker0			8000.0242f46784a9	no
-		
+
 **Remarque :** `docker0` est le bridge par défault de Docker.
 
 Créations des hosts :
@@ -50,7 +50,7 @@ Créations des hosts :
 		$ docker create -it --name stationD --hostname stationD --net br1 --cap-add NET_ADMIN alpine:latest /bin/sh
 		$ docker create -it --name stationE --hostname stationE --net br1 --cap-add NET_ADMIN alpine:latest /bin/sh
 
-L'option --cap-add NET_ADMIN permet à la station de pouvoir modifier ses propres interfaces. 
+L'option --cap-add NET_ADMIN permet à la station de pouvoir modifier ses propres interfaces.
 
 Boot des hosts :
 ----------------
@@ -58,7 +58,7 @@ Boot des hosts :
 		$ docker start stationA
 		$ docker start stationB
 		...
-		
+
 Le cas de la station C :
 ------------------------
 
@@ -74,7 +74,7 @@ Mettre en place les adresses ip :
 		$ docker exec stationC ip addr add 192.168.1.30/24 dev eth0
 		$ docker exec stationC ip addr add 192.168.2.10/24 dev eth1
 		...
-		
+
 Activez le routage de C :
 -------------------------
 
@@ -88,5 +88,5 @@ Mettre en place les tables de routage des stations :
 		$ docker exec stationX ip route add 192.168.2.0/24 via 192.168.1.30
 
 * Stations d'extrémitées X du sous réseau 192.168.2.0/24 :
-		
+
 		$ docker exec stationX ip route add 192.168.1.0/24 via 192.168.2.10

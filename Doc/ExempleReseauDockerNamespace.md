@@ -138,6 +138,7 @@ On peut enfin déplacer l'interface veth1 vers notre docker :
 	
 **Configurer les deux interfaces de chaque machines :**
 
+
 Pour lancer les commandes suivantes vous devez les lancer depuis une des deux stations. Pour cela : `ip netns exec stationA <COMMANDE>` et `# docker exec stationB <COMMANDE>`.
 
 Sur la stationA :

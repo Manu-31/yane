@@ -1,0 +1,94 @@
+#!/bin/bash
+#===============================================================================
+# Namespace helper functions
+#===============================================================================
+#-------------------------------------------------------------------------------
+# create host
+#    $1 : hostname
+#-------------------------------------------------------------------------------
+createHost_docker () {
+  logMessage LOG "Creating docker container $1"
+
+  $DOCKER create -it --name $1 --hostname $1 --network none --cap-add NET_ADMIN\
+    alpine:latest
+}
+
+#-------------------------------------------------------------------------------
+# boot host
+#    $1 : hostname
+#-------------------------------------------------------------------------------
+bootHost_docker () {
+   logMessage LOG "Booting docker container $1"
+
+   $DOCKER start $1 # boot du container
+   # Rendre le container manipulable par iproute2
+   CONTAINER_PID=$($DOCKER inspect --format='{{.State.Pid}}' $1)
+   $LN -s /proc/CONTAINER_PID/ns/net /var/run/netns/$1
+}
+
+#-------------------------------------------------------------------------------
+# shutdown host
+#    $1 : hostname
+#-------------------------------------------------------------------------------
+shutdownHost_docker () {
+   logMessage LOG "Shuting down docker container $1"
+
+   $RM -rf /var/run/netns/$1
+   $DOCKER container $1 stop
+}
+
+#-------------------------------------------------------------------------------
+# delete host
+#    $1 : hostname
+#-------------------------------------------------------------------------------
+deleteHost_docker () {
+   logMessage LOG "Deleting docker container $1"
+
+   $DOCKER container rm $1
+}
+
+#-------------------------------------------------------------------------------
+# return command that could open a terminal
+#    $1 : hostname
+#-------------------------------------------------------------------------------
+yaneConsoleCmd_docker () {
+   echo "$DOCKER exec $1 /bin/sh"
+}
+
+#-------------------------------------------------------------------------------
+# add an interface to an host
+#    $1 : hostname
+#    $2 : interface name (already created)
+#    $3 : IPv4 address (or "")
+#    $4 : namespace in which $2 is defined
+#-------------------------------------------------------------------------------
+yaneAddHostInterface_docker () {
+   logMessage LOG "Adding int '$2' from '$4' in docker container $1"
+
+   $IP netns exec $4 $IP link set $2 netns $1
+   if [ -n "$3" ] ; then
+      $DOCKER exec $1 $IP link set $2 up
+      $DOCKER exec $1 $IP addr add $3 dev $2
+   fi
+}
+
+#-------------------------------------------------------------------------------
+# Have we created host $1 ?
+#-------------------------------------------------------------------------------
+yaneHostExists_docker () {
+   if [ -z "`$DOCKER container ls -a|grep $srch`" ] ; then
+      return 1
+   else
+      return 0
+   fi
+}
+
+#-------------------------------------------------------------------------------
+# Populate the filesystem of an host
+#    $1 : hostname
+#    $2 : source basedir in the host filsystem (may be relative to .)
+#    $3 : destination basedir in the guest (must be absolute)
+#-------------------------------------------------------------------------------
+yaneHostPopulateFS_docker() {
+    logMessage LOG "Copying $2 to $3 in $1 (Not yet implemented)"
+}
