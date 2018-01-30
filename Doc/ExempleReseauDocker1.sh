@@ -67,4 +67,4 @@ echo Station C is now a router
 docker exec stationC echo 1 > /proc/sys/net/ipv4/ip_forward
 
 echo Si vous voulez interagir avec une station :
-echo Run : $ docker attach stationA
+echo Run : $ docker attach station<ID_STATION>
