@@ -6,16 +6,16 @@ Dans cet exemple nous allons relier deux machines par un lien virtuel :
 * Une machine Docker
 * Une machine Namespace
 
-Dans cet exemple la difficulté est que l'on utilise 2 technologies différentes (docker et namespace). Docker cache beaucoup de chose à l'utilisateur. Il n'est pas pensé pour communiquer avec autre chose que des dockers. Nous allons donc devoir creer le lien entre les deux machines manuellement car docker ne nous fourni pas les outils pour le faire (ce qui est parfaitement normal).
+Dans cet exemple la difficulté est que l'on utilise 2 technologies différentes (docker et namespace). Docker cache beaucoup de chose à l'utilisateur. Il n'est pas pensé pour communiquer avec autre chose que des dockers. Nous allons donc devoir créer le lien entre les deux machines manuellement car docker ne nous fourni pas les outils pour le faire (ce qui est parfaitement normal).
 
-1. Créer les deux machines :
----------------------------
+1 - Créer les deux machines :
+-----------------------------
 
-Nous allons commencer par creer le namespace pour la stationA :
+Nous allons commencer par créer le namespace pour la stationA :
 		
 		# ip netns add stationA
 		
-Cette commande va créer un namespace de type `net` nommé `stationA`. Celui-ci est représenté par un fichier `/var/run/netns/stationA`.
+Cette commande va initialiser un namespace de type `net` nommé `stationA`. Celui-ci est représenté par un fichier `/var/run/netns/stationA`.
 
 **Explications :** 
 
@@ -59,19 +59,19 @@ On peut par exemple observer que le processus 1227 appartient au namespace de ty
 
 Créons maintenant la machine docker, stationB :
 
-		docker create -it --network none --name stationB --hostname stationB --cap-add NET_ADMIN alpine:latest /bin/sh
+		docker create -it --network none --name stationB --hostname stationB --cap-add NET_ADMIN alpine:latest   
 
 On remarque que le réseau auxquel appartient ce container est `none`. Cela signifie que docker ne lui attribut aucune configuration réseau (pas d'adresse IP, MAC, ...). Pour plus d'info sur cette commande je vous invite à consulter la doc sur docker. 
 
-2. Booter les machines
-----------------------
+2 - Booter les machines
+-----------------------
 
 Les namespaces n'ont pas besoin d'être booté. En revanche pour Docker :
 
 		# docker start stationB
 
-3. Configurer le lien entre les deux machines
----------------------------------------------
+3 - Configurer le lien entre les deux machines
+----------------------------------------------
 
 On arrive à la partie la plus chaude ! On va procéder de la façon suivante :
 
