@@ -1,31 +1,28 @@
 Example de réseau Docker :
 ==========================
 
-**Script** : le script TutorielDoubleBridgeDocker.sh correspond à cet example.
-	 _______		 _______
-A ======|	|		|	|======= E
-	|  br0  |====== C ======|  br1  |	
-B ======|_______|		|_______|======= D
-	
+**Script** : le script TutorielDoubleBridgeDocker.sh correspond et permet de lancer cet example.
 
 Détails de la configuration souhaitée :
 ---------------------------------------
 
+![Réseau simple de machines docker](./reseau_simple_1.jpg "Réseau simple de machine docker")
+
 **Sous réseau br0 :** 192.168.1.0/24
 
-Station		A		B		C
-
-Adresses IP	192.168.1.10	192.168.1.20	192.168.1.30
+|Stations   |A           |B           |C           |
+|-----------|------------|------------|------------|
+|Adresses IP|192.168.1.10|192.168.1.20|192.168.1.30|
 
 **Sous réseau br1 :** 192.168.2.0/24
 
-Station		C		D		E
+|Station   |C           |D           |E           |
+|----------|------------|------------|------------|
+|Adresse IP|192.168.2.10|192.168.2.20|192.168.2.30|
 
-Adresse IP	192.168.2.10	192.168.2.20	192.168.2.30
 
-
-Create bridges :
-----------------
+Création des bridges :
+----------------------
 
 		$ docker network create -d bridge --subnet 192.168.1.0/24 br0
 		$ docker network create -d bridge --subnet 192.168.2.0/24 br1
@@ -44,8 +41,8 @@ Ces réseaux pour docker sont en fait des bridges. On peut les observer avec `br
 		
 **Remarque :** `docker0` est le bridge par défault de Docker.
 
-Create hosts :
---------------
+Créations des hosts :
+---------------------
 
 		$ docker create -it --name stationA --hostname stationA --net br0 --cap-add NET_ADMIN alpine:latest /bin/sh
 		$ docker create -it --name stationB --hostname stationB --net br0 --cap-add NET_ADMIN alpine:latest /bin/sh
@@ -55,8 +52,8 @@ Create hosts :
 
 L'option --cap-add NET_ADMIN permet à la station de pouvoir modifier ses propres interfaces. 
 
-Boot hosts :
-------------
+Boot des hosts :
+----------------
 
 		$ docker start stationA
 		$ docker start stationB
