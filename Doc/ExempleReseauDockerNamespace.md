@@ -175,7 +175,7 @@ Si tout s'est bien déroulé on obtient depuis la stationB :
 Je vous conseil ces liens si vous voulez plus d'info sur les namespaces :
 
 * Le man namespaces est très complet.
-* La page (wikipédia)[https://en.wikipedia.org/wiki/Linux_namespaces].
+* La page [wikipédia](https://en.wikipedia.org/wiki/Linux_namespaces).
 
 
 
