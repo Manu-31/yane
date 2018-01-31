@@ -23,7 +23,7 @@ bootHost_docker () {
    $DOCKER start $1 # boot du container
    # Rendre le container manipulable par iproute2
    CONTAINER_PID=$($DOCKER inspect --format='{{.State.Pid}}' $1)
-   $LN -s /proc/CONTAINER_PID/ns/net /var/run/netns/$1
+   $LN -s /proc/$CONTAINER_PID/ns/net /var/run/netns/$1
 }
 
 #-------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ shutdownHost_docker () {
    logMessage LOG "Shuting down docker container $1"
 
    $RM -rf /var/run/netns/$1
-   $DOCKER container $1 stop
+   $DOCKER container stop $1
 }
 
 #-------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ deleteHost_docker () {
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 yaneConsoleCmd_docker () {
-   echo "$DOCKER exec $1 /bin/sh"
+   echo "$DOCKER attach $1"
 }
 
 #-------------------------------------------------------------------------------

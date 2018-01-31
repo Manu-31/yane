@@ -6,11 +6,11 @@ network:
       name: docker-a
       mode: docker
     -
-      name: docker-b
-      mode: docker
+      name: namespace-b
+      mode: namespace
 
   links:
-    - docker-a:v0:192.168.1.1/24!docker-b:v1:192.168.1.2/24
+    - docker-a:v0:192.168.1.1/24!namespace-b:v0:192.168.1.2/24
 
   consoles:
     - all
