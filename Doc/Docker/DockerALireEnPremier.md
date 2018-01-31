@@ -1,4 +1,4 @@
-Tutoriel Docker
+Bases de Docker
 ===============
 
 Yane permet d'utiliser plusieurs technologies de virtualisation. L'une des plus connue est Docker. Docker permet d'emuler différents systèmes sur n'importe quel OS. Pour pouvoir émuler un réseau Docker vous devez d'abord [l'installer](http://docs.docker.com/engine/installation/). Nous utiliserons ici la version communautaire de Docker.
@@ -9,7 +9,7 @@ Si vous souhaitez plus d'informations sur l'utilisation de Docker :
 * [forums](https://forums.docker.com/)
 * Un man de docker existe !
 
-1-Lancer un container docker
+1 - Lancer un container docker
 ----------------------------
 
 L'équivalent des hosts dans yane seront des containers dans Docker. L'avantage de docker par rapport aux namespaces est de pouvoir avoir accès a une multitude d'images de container différentes (ubuntu, debian, ...) mais aussi de pouvoir y lancez toutes sortes d'applications (bases de données, serveur web, etc...) grâce au [dockerhub](http://hub.docker.com). On pourra ainsi générer du traffic varié sur notre réseau.
@@ -40,15 +40,23 @@ Si vous créez d'autres containers ils seront placés dans le même réseau par 
 Vous pouvez arrêter un container grâce à la commande : `$ docker container kill host-a`
 Vous pouvez le relancer avec : `$ docker container restart host-a`
 
-2-Créer un réseau avec Docker
+2 - Créer un réseau avec Docker
 -----------------------------
 
-Notre objectif est d'émuler des réseaux. Nous sommes capable de mettre en place un seul réseau avec plusieurs machines dedans. Mais il serais plus interessant de pouvoir émuler plusieurs réseaux. 
+Notre objectif est d'émuler des réseaux. Nous sommes capable de mettre en place un seul réseau avec plusieurs machines dedans. Mais il serais plus interessant de pouvoir émuler plusieurs réseaux.
 
-Pour cela Docker possède une fonctionnalité parfaite : `$ docker network` : 
+Pour cela Docker possède une fonctionnalité parfaite : `$ docker network` :
 * Vous pouvez visualiser les réseaux docker déjà présent grâce à : `$ docker network ls`.
 * Vous pouvez connecter un container à un réseau grâce à la commande : `$ docker network connect my_network host-a`. En réalité cela revient à ajouter une interface à notre container. Docker va de lui même ajouter une adresse IP.
 * Vous pouvez déconnecter un container d'un réseau grâce à la commande : `$ docker network disconnet my_network host-a`. Ici cela revient à supprimer une interface de notre container.
 * Vous pouvez créer de nouveaux réseau grâce à la commande : `$ docker network create --gateway=10.0.0.1 --subnet=10.0.0.0/16 my_network`. Par défaut ce réseau repose sur un driver de type bridge. Ceci signifie que Docker créer un bridge où tous les hôtes connectés à ce réseau seront reliés à celui-ci. Il existe d'autres drivers fournis par Docker, nous n'en parlerons pas ici.
 
 **Remarque**: un container peut être connecté à plusieurs réseaux on peut donc créer des routeurs !
+
+3 - Et maintenant ?
+-------------------
+
+Avec nous utilisons docker de manière différente qu'ici. Pour une meilleur idée de notre utilisation de docker avec yane je vous invite à aller voir le fichier : ExempleDockerNamespace.md.
+Vous pourrez découvrir comment yane interconnecte un docker avec un namespace.
+
+Vous pouvez également aller voir le fichier ExempleDocker1.md pour un exemple d'un réseau plus complexe avec docker (docker uniquement).
