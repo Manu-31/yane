@@ -34,7 +34,7 @@ shutdownHost_docker () {
    logMessage LOG "Shuting down docker container $1"
 
    $RM -rf /var/run/netns/$1
-   $DOCKER container stop $1
+   $DOCKER container kill $1
 }
 
 #-------------------------------------------------------------------------------
@@ -90,5 +90,7 @@ yaneHostExists_docker () {
 #    $3 : destination basedir in the guest (must be absolute)
 #-------------------------------------------------------------------------------
 yaneHostPopulateFS_docker() {
-    logMessage LOG "Copying $2 to $3 in $1 (Not yet implemented)"
+    logMessage LOG "Copying $2 to $3 in $1"
+
+    $DOCKER cp $2 $1:$3
 }

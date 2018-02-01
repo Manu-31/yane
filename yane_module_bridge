@@ -23,10 +23,10 @@ yaneCreateBridges () {
    for idx in ${!bridgeName[@]} ; do
       br=${bridgeName[$idx]}
 
-      # Actually create the bridge 
+      # Actually create the bridge
       yaneCreateBridge ${SESSION_ID}_$br
 
-      intList=${bridgeInterfaces["$br"]}
+      intList=${bridgeInterfaces[$idx]}
       # Each interface is part of a p2plink
       num=0
       for i in `echo $intList | sed -e "s/!/ /g"` ; do
@@ -34,21 +34,21 @@ yaneCreateBridges () {
 	 createLink "$i!$br:${br}i$num"
          num=`expr $num + 1`
       done
-	       
+
    done
-       
+
 }
 
 #-------------------------------------------------------------------------------
 # Have we created bridge $1 in $SESSION_ID ?
 #-------------------------------------------------------------------------------
 yaneBridgeExists() {
-   if [ "${bridgeName["$1"]}" != "$1" ] ; then
-      return 1
+   if [ "${bridgeName["$1"]}" == "$1" ] ; then
+      return 0
    fi
 
    $IP netns exec $YANE_DEFAULT_NETNS $IP link show ${SESSION_ID}_$1 > /dev/null 2>&1
-   
+
    return $?
 }
 
@@ -64,11 +64,10 @@ yaneAddBridgeInterface() {
 
    # Bing it back from its netns
    $IP netns exec $4 $IP link set $2 netns $YANE_DEFAULT_NETNS
-   
+
    $IP netns exec $YANE_DEFAULT_NETNS $IP link set $2 master $1
    $IP netns exec $YANE_DEFAULT_NETNS $IP link set $2 up
    if [ -n "$3" ] ; then
       $IP netns exec $YANE_DEFAULT_NETNS $IP addr add $3 dev $2
    fi
 }
-

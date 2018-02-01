@@ -1,6 +1,6 @@
 network:
   name: docker-1
-  version: 0.0
+  version: 1.0
   hosts:
     -
       name: docker-a
@@ -13,4 +13,7 @@ network:
     - docker-a:v0:192.168.1.1/24!namespace-b:v0:192.168.1.2/24
 
   consoles:
+    - all
+
+  dumpif:
     - all

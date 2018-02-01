@@ -99,7 +99,7 @@ buildNetworkFromFile_yaml () {
    done
 
    # Build the bridges related lists
-   for idx in ${network_bridges__name[@]}
+   for idx in ${!network_bridges__name[@]}
    do
       bridgeName[$idx]="${network_bridges__name[$idx]}"
       bridgeInterfaces[$idx]="${network_bridges__interfaces[$idx]}"
