@@ -101,9 +101,10 @@ buildNetworkFromFile_yaml () {
    # Build the bridges related lists
    for idx in ${!network_bridges__name[@]}
    do
-      bridgeName[$idx]="${network_bridges__name[$idx]}"
-      bridgeInterfaces[$idx]="${network_bridges__interfaces[$idx]}"
-      logMessage DEB "$idx -> ${bridgeName[$idx]}  ${bridgeInterfaces[$idx]}"
+      br=${network_bridges__name[idx]}
+      bridgeName[$br]="${network_bridges__name[$idx]}"
+      bridgeInterfaces[$br]="${network_bridges__interfaces[$idx]}"
+      logMessage DEB "$idx -> $br  ${bridgeInterfaces[$br]}"
    done
 
    # Build the dumpif list
