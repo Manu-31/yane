@@ -26,3 +26,7 @@
 # Répertoires générés
 DOCS/html
 DOCS/latex
+
+# Fichiers générés
+*.sessions
+*.pid

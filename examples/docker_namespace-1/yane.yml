@@ -1,0 +1,19 @@
+network:
+  name: docker-1
+  version: 1.0
+  hosts:
+    -
+      name: docker-a
+      mode: docker
+    -
+      name: namespace-b
+      mode: namespace
+
+  links:
+    - docker-a:v0:192.168.1.1/24!namespace-b:v0:192.168.1.2/24
+
+  consoles:
+    - all
+
+  dumpif:
+    - all

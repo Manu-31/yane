@@ -1,0 +1,35 @@
+network:
+  name: docker-1
+  version: 0.1
+  hosts:
+    -
+      name: obi
+      mode: docker
+    -
+      name: vader
+      mode: docker
+    -
+      name: luke
+      mode: docker
+    -
+      name: rey
+      mode: docker
+    -
+      name: ren
+      mode: docker
+
+  bridges:
+    -
+      name: r2d2
+      mode: switched
+      interfaces: obi:v0:192.168.1.10/24!vader:v0:192.168.1.20/24!luke:v0:192.168.1.30/24
+    -
+      name: c3po
+      mode: switched
+      interfaces: ren:v0:192.168.2.10/24!rey:v0:192.168.2.20/24!luke:v1:192.168.2.30/24
+
+  consoles:
+    - all
+
+  dumpif:
+    - all
