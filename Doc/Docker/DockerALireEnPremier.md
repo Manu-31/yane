@@ -33,7 +33,7 @@ On peut donc lancer un ifconfig pour voir la configuration réseau de ce contain
 
 Ou bien consulter vos interfaces ainsi que les routes crées par Docker :
 
-		$ docker exec host-a route-n ; ip a
+		$ docker exec host-a ip route ; ip a
 
 Si vous créez d'autres containers ils seront placés dans le même réseau par défaut. En effet docker a mis en place un réseau tout seul où tous vos container sont reliés entre-eux par un bridge.
 
