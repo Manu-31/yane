@@ -1,11 +1,11 @@
 network:
   name: basic
-  version: 1.0
+  version: 1.1
   hosts:
-    - 
+    -
       name: host-a
       mode: namespace
-    -  
+    -
       name: host-b
       mode: namespace
 
@@ -15,3 +15,5 @@ network:
   consoles:
     - all
 
+  dumpif:
+    - all
