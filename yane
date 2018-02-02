@@ -53,7 +53,7 @@ XTERM=/usr/bin/xterm
 #-------------------------------------------------------------------------------
 YANE_ROOT_DIR=$($DIRNAME $($READLINK -f $0))
 BASEDIR=$PWD
-DEBUG=True
+DEBUG=False
 VERBOSE=False
 NET_CONFIG_FILE=yane.yml
 TMP_CFG_FILE=./yane.$$
