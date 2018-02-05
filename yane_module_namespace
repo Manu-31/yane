@@ -86,6 +86,6 @@ yaneHostExists_namespace() {
 #-------------------------------------------------------------------------------
 yaneHostPopulateFS_namespace() {
     logMessage LOG "Copying $2 to $3 in $1"
-    $MKDIR /etc/netns/$1 >/dev/null 2>&1 || $TRUE
+    $MKDIR -p /etc/netns/$1 >/dev/null 2>&1 || $TRUE
     $CP -a $2/* /etc/netns/$1 >/dev/null 2>&1 || $TRUE
 }
