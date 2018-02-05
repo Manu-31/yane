@@ -18,15 +18,15 @@ yaneCreateBridge () {
 # Create bridges from the list
 #-------------------------------------------------------------------------------
 yaneCreateBridges () {
-   logMessage DEB "Creating bridges ..."
-   echo "${bridgeName[@]}------------------"
+   logMessage DEB "Creating bridges ${bridgeName[@]}"
+
    for idx in ${!bridgeName[@]} ; do
       br=${bridgeName[$idx]}
-      
+
       # Actually create the bridge
       yaneCreateBridge ${SESSION_ID}_$br
       intList=${bridgeInterfaces[$br]}
-      
+
       # Each interface is part of a p2plink
       num=0
       for i in `echo $intList | sed -e "s/!/ /g"` ; do
