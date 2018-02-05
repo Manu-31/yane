@@ -53,7 +53,7 @@ XTERM=/usr/bin/xterm
 #-------------------------------------------------------------------------------
 YANE_ROOT_DIR=$($DIRNAME $($READLINK -f $0))
 BASEDIR=$PWD
-DEBUG=False
+DEBUG=True
 VERBOSE=False
 NET_CONFIG_FILE=yane.yml
 TMP_CFG_FILE=./yane.$$
@@ -71,6 +71,7 @@ declare -A p2pLinks             # Array of p2p links
 declare -A interfaces           # Array of known interfaces
 declare -A dumpIf               # Array of interface to snoop
 declare -A modules              # Array o loaded modules
+declare -A bridgeName   	# Array of interfaces indexed by bridges name
 declare -A bridgeInterfaces     # Array of interfaces indexed by bridges name
 
 FIFO_ROOT=/tmp/nssi
@@ -178,7 +179,7 @@ yaneDisplayNetwork () {
    yaneDisplayHosts
 
    echo "Bridges : "
-   for idx in ${!bridgeName[@]} ; do
+   for idx in ${bridgeName[@]} ; do
       br=${bridgeName[$idx]}
       echo "   . [$idx] '$br'"
       il=${bridgeInterfaces["$br"]}
