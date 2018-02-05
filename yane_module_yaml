@@ -62,7 +62,6 @@ function parse_yaml_2 {
 # bridgeName            array (name indexed) of BridgeName
 # bridgeInterfaces      array (name indexed) of BridgeInterface
 #
-# dockerImages          array (hosts name indexed) of dockerImages
 #-------------------------------------------------------------------------------
 buildNetworkFromFile_yaml () {
    # Parse the config file
@@ -119,10 +118,4 @@ buildNetworkFromFile_yaml () {
           logMessage ERR "Cannot snoop on unknown host '$hn' ..."
       fi
    done
-
-   # Build the docker images list
-   #for idx in ${!network_hosts__image[@]}
-   #do
-       #host=${network_hosts__mode}
-   #done
 }
