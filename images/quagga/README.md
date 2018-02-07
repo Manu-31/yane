@@ -5,4 +5,8 @@ Image Quagga
 
 **image parente :** `alpine:latest`
 
-**packages :** Quagga
+**packages :**
+* Quagga
+
+**Build :**
+    # docker build --tag quagga:v1.0 /YANE/images/quagga

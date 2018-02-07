@@ -56,7 +56,7 @@ Pour cela Docker possède une fonctionnalité parfaite : `$ docker network` :
 3 - Et maintenant ?
 -------------------
 
-Avec nous utilisons docker de manière différente qu'ici. Pour une meilleur idée de notre utilisation de docker avec yane je vous invite à aller voir le fichier : ExempleDockerNamespace.md.
+Avec yane nous utilisons docker de manière différente que jusqu'ici. Pour une meilleur idée de notre utilisation de docker avec yane je vous invite à aller voir le fichier : ExempleDockerNamespace.md.
 Vous pourrez découvrir comment yane interconnecte un docker avec un namespace.
 
 Vous pouvez également aller voir le fichier ExempleDocker1.md pour un exemple d'un réseau plus complexe avec docker (docker uniquement).

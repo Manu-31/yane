@@ -1,6 +1,6 @@
 network:
   name: docker-1
-  version: 1.2
+  version: 1.3
   hosts:
     -
       name: obi
@@ -13,7 +13,7 @@ network:
     -
       name: luke
       mode: docker
-      image: ubuntu
+      image: ubuntu:v1.0
     -
       name: rey
       mode: docker
