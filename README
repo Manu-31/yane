@@ -1,24 +1,27 @@
-Yet Another Network Emulator !?
+# Yet Another Network Emulator !?
 
 Yes !
 
---------------------------------------------------------------------
---  Usage
---------------------------------------------------------------------
+# Usage
 
-* Basic usage
+## Basic usage
 
 Run a session
 
+'''
 $ yane
+'''
 
 Kill the session
 
+'''
 $ yane -k
+'''
 
-* Configuration
+##Configuration
 
 A yaml file describes the network
+
 
 --------------------------------------------------------------------
 --  
