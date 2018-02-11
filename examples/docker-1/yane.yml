@@ -1,22 +1,27 @@
 network:
   name: docker-1
-  version: 1.0
+  version: 1.3
   hosts:
     -
       name: obi
       mode: docker
+      image: default
     -
       name: vader
       mode: docker
+      image: default
     -
       name: luke
       mode: docker
+      image: ubuntu:v1.0
     -
       name: rey
       mode: docker
+      image: alpine
     -
       name: ren
       mode: docker
+      image: alpine
 
   bridges:
     -

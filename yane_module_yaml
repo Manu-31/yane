@@ -61,18 +61,32 @@ function parse_yaml_2 {
 #
 # bridgeName            array (name indexed) of BridgeName
 # bridgeInterfaces      array (name indexed) of BridgeInterface
+#
 #-------------------------------------------------------------------------------
 buildNetworkFromFile_yaml () {
    # Parse the config file
    eval $(parse_yaml $1) 2> /dev/null
 
+   # Verify that the number of images correspond to the number of dockers
+   isNbDockersValid
+
    # Build the host lists
+   id_img=0
    for idx in ${!network_hosts__name[@]}
    do
       hostName["${network_hosts__name[$idx]}"]="${network_hosts__name[$idx]}" # a bit useless, I know
-      hostNum["${network_hosts__name[$idx]}"]=$idx 
+      hostNum["${network_hosts__name[$idx]}"]=$idx
       hostMode["${network_hosts__name[$idx]}"]=${network_hosts__mode[$idx]}
       hostFiles["${network_hosts__name[$idx]}"]=${network_hosts__files[$idx]}
+
+      # Create docker images list `hostDockerImage`
+      # `none` images is use for no docker hosts
+      if [ "${network_hosts__mode[$idx]}" != "docker" ]; then
+        hostDockerImage["${network_hosts__name[$idx]}"]="none"
+      else
+        hostDockerImage["${network_hosts__name[$idx]}"]=${network_hosts__image[$id_img]}
+        (( id_img++ ))
+      fi
    done
 
    # Build the console list
@@ -81,12 +95,12 @@ buildNetworkFromFile_yaml () {
       do
          consHost[$idx]=$idx
       done
-   else 
+   else
       for idx in ${network_consoles[@]}
       do
          if [ "${hostName[$idx]}" == "$idx" ]  ; then
              consHost[$idx]=$idx
-         else 
+         else
              logMessage ERR "Cannot open console on unknown host '$idx' ..."
          fi
       done
@@ -113,9 +127,30 @@ buildNetworkFromFile_yaml () {
       hn=`echo $idx| cut -d: -f1`
       if [ "${hostName[$hn]}" == "$hn" -o "$idx" == "all" ]  ; then
           dumpIf[$idx]=$idx
-      else 
+      else
           logMessage ERR "Cannot snoop on unknown host '$hn' ..."
       fi
    done
 }
 
+#-------------------------------------------------------------------------------
+# Read the number of docker specified in yane.yml and exit if there are
+# enough or too much images defined.
+#-------------------------------------------------------------------------------
+isNbDockersValid () {
+  nbDocker=0
+  for mode in ${network_hosts__mode[@]}
+  do
+    if [ $mode = "docker" ]; then
+      (( nbDocker++ ))
+    fi
+  done
+
+  if [ $nbDocker -lt ${#network_hosts__image[@]} ]; then
+    logMessage ERR "Only dockers must have an image..."
+    exit
+  elif [ $nbDocker -gt ${#network_hosts__image[@]} ]; then
+    logMessage ERR "Too much dockers and not enough images..."
+    exit
+  fi
+}

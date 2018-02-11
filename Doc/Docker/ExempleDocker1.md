@@ -1,7 +1,10 @@
 Exemple de réseau Docker :
 ==========================
+Cet exemple explique comment docker peut permettre la mise en place d'un réseau. Ici seul docker est utilisé (pas de yane ;)). Cependant il peut vous permettre de comprendre comment _yane_ intègre docker. Le même exemple réalisé avec yane se trouve sous `YANE/examples/docker-1`.
 
-**Script** : le script _TutorielDoubleBridgeDocker.sh_ correspond et permet de lancer cet example.
+**Script :** le script _TutorielDoubleBridgeDocker.sh_ correspond et permet de lancer cet example.
+
+**Attention :** Noubliez pas de stopper et d'enlever vos containers à la fin, lorsque vous n'en n'aurez plus besoin : `# docker kill <docker-id>` et `# docker rm <docker-id>`
 
 Détails de la configuration souhaitée :
 ---------------------------------------
@@ -50,7 +53,8 @@ Créations des hosts :
 		$ docker create -it --name stationD --hostname stationD --net br1 --cap-add NET_ADMIN alpine:latest /bin/sh
 		$ docker create -it --name stationE --hostname stationE --net br1 --cap-add NET_ADMIN alpine:latest /bin/sh
 
-L'option --cap-add NET_ADMIN permet à la station de pouvoir modifier ses propres interfaces.
+L'option `--cap-add NET_ADMIN` permet à la station de pouvoir modifier ses propres interfaces.
+On pourrait aussi utiliser le flag `--privileged`.
 
 Boot des hosts :
 ----------------
