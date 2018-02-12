@@ -1,0 +1,67 @@
+network:
+  name: ospf-1
+  version: 1.0
+  hosts:
+    -
+      name: canada
+      mode: namespace
+    -
+      name: usa
+      mode: namespace
+    -
+      name: mexico
+      mode: namespace
+    -
+      name: router-NA
+      mode: docker
+      image: quagga:latest
+    -
+      name: france
+      mode: namespace
+    -
+      name: germany
+      mode: namespace
+    -
+      name: italy
+      mode: namespace
+    -
+      name: router-EU
+      mode: docker
+      image: quagga:latest
+    -
+      name: russia
+      mode: namespace
+    -
+      name: china
+      mode: namespace
+    -
+      name: japan
+      mode: namespace
+    -
+      name: router-AS
+      mode: docker
+      image: quagga:latest
+
+  bridges :
+    -
+      name: durif
+      mode: switched
+      interfaces: router-NA:v0:192.168.1.1/24!router-EU:v0:192.168.1.2/24!router-AS:v0:192.168.1.3/24
+    -
+      name: ggate
+      mode: switched
+      interfaces: router-NA:v1:192.168.2.254/24!canada:v0:192.168.2.1/24!usa:v0:192.168.2.2/24!mexico:v0:192.168.2.3/24
+    -
+      name: millau
+      mode: switched
+      interfaces: router-EU:v1:192.168.3.254/24!france:v0:192.168.3.1/24!germany:v0:192.168.3.2/24!italy:v0:192.168.3.3/24
+    -
+      name: marco
+      mode: switched
+      interfaces: router-AS:v1:192.168.4.254/24!russia:v0:192.168.4.1/24!china:v0:192.168.4.2/24!japan:v0:192.168.4.3/24
+
+  consoles:
+    - all
+
+  dumpif:
+    - all

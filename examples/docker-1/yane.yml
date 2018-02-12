@@ -13,7 +13,7 @@ network:
     -
       name: luke
       mode: docker
-      image: ubuntu:v1.0
+      image: quagga:latest
     -
       name: rey
       mode: docker
