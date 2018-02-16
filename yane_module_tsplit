@@ -51,7 +51,7 @@ tnwin() {
 
 # 
 #   $1 : nb_panes
-#   $2 : <session-ID>:<window-ID>
+#   $2 : <session-ID>
 tkpanes() {
     if [ $1 -eq 4 ]; then
         t4panes "$2:0"

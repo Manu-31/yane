@@ -41,8 +41,8 @@ yaneOpenConsoleWindows () {
    NB_WINDOWS=$(echo "$NB_CONSOLES/4 + 1" | bc)
 
    tmux new-session -s session_$SESSION_ID -d
-   tnwin $NB_WINDOWS session_$SESSION_ID
-
+   tkpanes $NB_CONSOLES session_$SESSION_ID
+   
    idwindow=0
    idpane=0
    for hn in ${consHost[@]}
