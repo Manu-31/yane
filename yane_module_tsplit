@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# tsplit split your current tmux in n lines by m columns
+#   $1 : number of line
+#   $2 : number of column
+#   $3 : <session-ID>:<window-ID>
+tsplit() {
+    line=$1
+    (( line-- ))
+    col=$2
+    (( col-- ))
+    for i in `seq 1 $line`;
+    do
+        tmux splitw -h -t $3
+    done
+    tmux select-layout -t $3 even-horizontal 
+    (( line++ ))
+    for k in `seq 1 $line`;
+    do
+        percent=$(echo "100-100/$((col + 1))" | bc)
+        for j in `seq 1 $col`;
+        do
+            tmux splitw -v -p $percent -t $3
+            percent=$(echo "100-100/($col - $j + 1)" | bc)
+        done
+        tmux select-pane -L -t $3
+    done
+    tmux select-pane -t $3.0
+}
+
+#t4panes split a tmux window in 4 by 4
+#   $1 : <session-ID>:<window-ID>
+t4panes() {
+    tsplit 2 2 $1
+}
+
+# tnwin create n 4 by 4 windows in your current tmux
+#   $1 : number of windows
+#   $2 : <session-ID>
+tnwin() {
+    if [ $1 -gt 0 ]; then
+        t4panes "$2:0" #attention la première window ne s'appelle peut etre pas 0 
+        for k in `seq 2 $1`;
+        do
+           tmux new-window -t "$2:$(echo $k-1 | bc)"
+            t4panes "$2:$(echo $k-1 | bc)"
+        done
+        tmux select-window -t "$2:0"
+    fi
+}
+
+# 
+#   $1 : nb_panes
+#   $2 : <session-ID>:<window-ID>
+tkpanes() {
+    if [ $1 -eq 4 ]; then
+        t4panes "$2:0"
+    elif [ $1 -lt 4 ]; then
+        tsplit 1 $1 "$2:0"
+    else
+        NB_WINDOWS=$(echo "$1/4" | bc)
+        tnwin $NB_WINDOWS $2
+        if [ $(echo "$1%4" | bc) -ne 0 ]; then
+            tmux new-window -t "$2:$NB_WINOWS"
+            tsplit 1 $(echo "$1%4" | bc) "$2:$NB_WINDOWS"
+        fi
+    fi
+}

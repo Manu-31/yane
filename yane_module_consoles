@@ -3,6 +3,8 @@
 # Yane module for console management
 #===============================================================================
 
+TMUX=/usr/bin/tmux
+#TNWIN=?
 #-------------------------------------------------------------------------------
 # Open a console in the shell
 #   $1 : hostName
@@ -16,19 +18,16 @@ yaneOpenConsole () {
 #-------------------------------------------------------------------------------
 # Open a console in a window in $SESSION_ID
 #   $1 : hostName
-#   $2 : terminal (eg /usr/bin/xterm)
-#
-# WARNING : suits xterm only !!
+#   $2 : tmux id window
+#   $3 : tmux id pane
 #-------------------------------------------------------------------------------
 yaneOpenConsoleWindow () {
-   t=${2:-$XTERM}
    c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
 
    logMessage LOG "Running console '$c' in terminal '$t'" 
 
-   $t -title $1 -e $c &
+   tmux send-keys -t "session_$SESSION_ID:$2.$3" "$c" Enter
 
-   echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
 }
 
 #-------------------------------------------------------------------------------
@@ -36,12 +35,27 @@ yaneOpenConsoleWindow () {
 #-------------------------------------------------------------------------------
 yaneOpenConsoleWindows () {
    logMessage LOG "Opening consoles"
+   
+   
+   NB_CONSOLES=${#consHost[@]}
+   NB_WINDOWS=$(echo "$NB_CONSOLES/4 + 1" | bc)
 
+   tmux new-session -s session_$SESSION_ID -d
+   tnwin $NB_WINDOWS session_$SESSION_ID
+
+   idwindow=0
+   idpane=0
    for hn in ${consHost[@]}
    do
       logMessage LOG "Opening console on $hn"
-      yaneOpenConsoleWindow $hn
+      yaneOpenConsoleWindow $hn $idwindow $idpane
+      idpane=$(echo "($idpane+1)%4" | bc)
+      if [ $idpane -eq 0 ]; then
+         idwindow=$(echo "$idwindow+1" | bc)
+      fi
    done
+   xterm -e "tmux attach -t session_$SESSION_ID" &
+   echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
 }
 
 #-------------------------------------------------------------------------------
@@ -56,6 +70,7 @@ yaneKillConsoles () {
           $KILL $c
       done
       $RM ./.yane_${SESSION_ID}_module_consoles.pid
+      tmux kill-session -t session_$SESSION_ID
    fi
 }
 
