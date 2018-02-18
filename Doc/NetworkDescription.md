@@ -10,7 +10,7 @@ et lisible. Le but de ce document est de la décrire
 ```yaml
 network :
   name: toto
-    version: 1.0
+  version: 1.0
 ```
 
    A priori c'est clair :-)
@@ -55,13 +55,37 @@ Puis chaque hôte est défini par une entrée  telle que :
 
    Avec la syntaxe suivante : sh:si[:sa]!dh:di[:da] où
 
-- sh et dh sont les noms des hôtes source et destination, respectivement ;
+- sh et dh sont les noms des hôtes (ou ponts) source et destination, respectivement ;
 - si et di sont les interfaces de sh et dh, respectivement, à relier ;
 - sa et da sont les adresses IPv4 à attribuer à si et di, respectivement.
 
 
    Les adresses sont facultatives.
+
+   Notons que les liens peuvent également être décrits dans les ponts (voir la description des ponts pour cela)
    
 ## Les ponts
 
+   Un pont permet de relier plusieurs interfaces. Ils sont mis en
+oeuvre au travers des outils Linux de gestion des ponts. On pourra
+donc utiliser toutes les fonctionnalités liées à ces outils.
+
+   Un pont est décrit de la façon suivante
+
+```yaml
+  bridges :
+    -
+      name: jeff
+      interfaces: host-a:v0:192.168.1.1/24!host-b:v0:192.168.1.2/24!host-c:v0:192.168.1.3/24
+```
+
+   La variable name est évidemment le nom du pont.
+
+   interfaces permet de lister les hôtes reliées au pont. Les
+interfaces correspondantes sur le pont sont créées
+automatiquement. Cette variable est composée d'une liste, séparée par
+des ! d'interfaces sous la forme h:i[:a] (avec la même syntaxe qu'une
+variable de type link).
+   
 ## Les consoles
+
