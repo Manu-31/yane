@@ -14,10 +14,10 @@ createHost_docker () {
 
   if [ "$2" == "default" ]; then
     logMessage LOG "Creating docker container $1 from $DEFAULT_IMAGE"
-    $DOCKER create -it --name $1 --hostname $1 --network none --privileged $DEFAULT_IMAGE
+    $DOCKER create -it --name $1 --hostname $1 --network none --privileged $DEFAULT_IMAGE > /dev/null
   else #Warning should verify that $2 is a valid image
     logMessage LOG "Creating docker container $1 from $2"
-    $DOCKER create -it --name $1 --hostname $1 --network none --privileged $2
+    $DOCKER create -it --name $1 --hostname $1 --network none --privileged $2 > /dev/null
   fi
 }
 
@@ -28,7 +28,7 @@ createHost_docker () {
 bootHost_docker () {
    logMessage LOG "Booting docker container $1"
 
-   $DOCKER start $1 # boot du container
+   $DOCKER start $1 > /dev/null # boot du container
    # Rendre le container manipulable par iproute2
    CONTAINER_PID=$($DOCKER inspect --format='{{.State.Pid}}' $1)
    $LN -s /proc/$CONTAINER_PID/ns/net /var/run/netns/$1
@@ -42,7 +42,7 @@ shutdownHost_docker () {
    logMessage LOG "Shuting down docker container $1"
 
    $RM -rf /var/run/netns/$1
-   $DOCKER container kill $1
+   $DOCKER container kill $1 > /dev/null
 }
 
 #-------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ shutdownHost_docker () {
 deleteHost_docker () {
    logMessage LOG "Deleting docker container $1"
 
-   $DOCKER container rm $1
+   $DOCKER container rm $1 > /dev/null
 }
 
 #-------------------------------------------------------------------------------
@@ -93,6 +93,8 @@ yaneHostExists_docker () {
 
 #-------------------------------------------------------------------------------
 # Populate the filesystem of an host
+#  Warning : it doesn't work for configuration files like /etc/hosts,...
+#  To configure your own docker system use images feature of Docker.
 #    $1 : hostname
 #    $2 : source basedir in the host filsystem (may be relative to .)
 #    $3 : destination basedir in the guest (must be absolute)

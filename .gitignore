@@ -30,6 +30,7 @@ DOCS/latex
 # Fichiers générés
 *.sessions
 *.pid
+*.swp
 
 # Archives .git (obligatoire après panne de courant =) )
 .git-old

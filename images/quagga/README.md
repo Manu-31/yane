@@ -3,10 +3,26 @@ Image Quagga
 
 **version :** 1.0
 
-**image parente :** `alpine:latest`
+**image parente :** `ubuntu:latest`
 
 **packages :**
-* Quagga
+* quagga
+* net-tools
+* iproute2
+* nano
+* telnet
 
-**Build :**
-    # docker build --tag quagga:v1.0 /YANE/images/quagga
+**Fichiers de config fournis :**
+```
+/YANE/images/quagga/quagga/daemons
+/YANE/images/quagga/quagga/debian.conf
+/YANE/images/quagga/quagga/ospfd.conf
+/YANE/images/quagga/quagga/zebra.conf
+```
+
+**Point d'entrée :**
+* Lancement de quagga : `/etc/init.d/quagga start`
+* /bin/bash
+
+**How to build ?**
+    # docker build --tag quagga:latest /YANE/images/quagga
