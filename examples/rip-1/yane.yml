@@ -1,0 +1,44 @@
+network:
+  name: rip-1
+  version: 0.1
+  hosts:
+    -
+      name: r1
+      mode: namespace
+    -
+      name: r2
+      mode: namespace
+    -
+      name: r3
+      mode: namespace
+    -
+      name: r4
+      mode: namespace
+    -
+      name: r5
+      mode: namespace
+    -
+      name: a
+      mode: namespace
+    -
+      name: b
+      mode: namespace
+    -
+      name: c
+      mode: namespace
+
+
+  links:
+    - r1:fe1:17.0.12.1/24!r2:fe0:17.0.12.2/24
+    - r2:fe1:17.0.23.2/24!r3:fe0:17.0.23.3/24
+    - r3:fe1:17.0.34.3/24!r4:fe1:17.0.34.4/24
+    - r1:fe2:17.0.15.1/24!r5:fe0:17.0.15.5/24
+    - r5:fe1:17.0.45.5/24!r4:fe0:17.0.45.4/24
+    - a:eth0:17.10.0.2/24!r1:fe0:17.10.0.1/24
+    - b:eth0:17.40.0.2/24!r4:fe2:17.40.4.1/24
+    - c:eth0:17.50.0.2/24!r5:fe2:17.50.5.1/24
+
+  consoles :
+    - all
+    
+
