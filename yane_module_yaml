@@ -132,25 +132,3 @@ buildNetworkFromFile_yaml () {
       fi
    done
 }
-
-#-------------------------------------------------------------------------------
-# Read the number of docker specified in yane.yml and exit if there are
-# enough or too much images defined.
-#-------------------------------------------------------------------------------
-isNbDockersValid () {
-  nbDocker=0
-  for mode in ${network_hosts__mode[@]}
-  do
-    if [ $mode = "docker" ]; then
-      (( nbDocker++ ))
-    fi
-  done
-
-  if [ $nbDocker -lt ${#network_hosts__image[@]} ]; then
-    logMessage ERR "Only dockers must have an image..."
-    exit
-  elif [ $nbDocker -gt ${#network_hosts__image[@]} ]; then
-    logMessage ERR "Too much dockers and not enough images..."
-    exit
-  fi
-}
