@@ -613,6 +613,32 @@ cleanup () {
 #   $RM -rf $FIFO_ROOT > /dev/null 2>&1 ||$TRUE # WARNING only if empty
 }
 
+showHelp () {
+  $CAT << EOF
+What ?
+Yet Another Network Emulator !?
+
+Yes, by Manu Chaput. Version : $YANE_VERSION
+
+Usage (option order is important)
+
+yane [-f <cfg>] [-s <id>] [-c] [-v] [-w] [-k]  [-l]
+
+Options
+-c <host>    open a terminal on host then exit
+-f <file>    use file as config
+-h           help
+-k           kill session
+-l           list sessions based on config
+-s <id>      session id
+-v           be verbose
+-w <host>    open a forked terminal in a window on host
+
+Modules
+${modules[@]}
+EOF
+}
+
 yaneLoadModules
 #-------------------------------------------------------------------------------
 # Parse command line options
@@ -685,33 +711,13 @@ do
          VERBOSE=True
       ;;
       -h )
-         $CAT << EOF
-What ?
-   Yet Another Network Emulator !?
-
-   Yes, by Manu Chaput. Version : $YANE_VERSION
-
-Usage (option order is important)
-
-   yane [-f <cfg>] [-s <id>] [-c] [-v] [-w] [-k]  [-l]
-
-Options
-   -c <host>    open a terminal on host then exit
-   -f <file>    use file as config
-   -h           help
-   -k           kill session
-   -l           list sessions based on config
-   -s <id>      session id
-   -v           be verbose
-   -w <host>    open a forked terminal in a window on host
-
-Modules
-   ${modules[@]}
-EOF
+         showHelp
 	 exit
       ;;
       * )
 	  echo Unknown option $1
+    showHelp
+    exit
       ;;
    esac
    shift

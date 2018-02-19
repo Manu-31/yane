@@ -61,7 +61,7 @@ network:
       interfaces: router-AS:v1:192.168.4.254/24!russia:v0:192.168.4.1/24!china:v0:192.168.4.2/24!japan:v0:192.168.4.3/24
 
   consoles:
-    - all
+    - router-NA router-EU router-AS
 
   dumpif:
     - all
