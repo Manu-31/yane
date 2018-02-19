@@ -47,6 +47,11 @@ Afin d'interagir avec notre réseau. On peut afficher les consoles de chaque hô
 consoles:
   - all
 ```
+Si l'on souhaite seulement certaines consoles il suffit de les spécifier de la façon suivante :
+```yaml
+consoles:
+  - host-A host-B
+```
 Enfin on peut lancez la simulation :
 `# yane`
 
