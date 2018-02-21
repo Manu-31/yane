@@ -2,7 +2,7 @@ network :
   name: bridge-1
   version: 1.0
   hosts:
-    - 
+    -
       name: host-a
       mode: namespace
     -
@@ -20,6 +20,6 @@ network :
 
   consoles :
     - all
-    
+
   dumpif :
     - all

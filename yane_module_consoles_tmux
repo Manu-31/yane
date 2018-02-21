@@ -1,0 +1,54 @@
+#!/bin/bash
+#===============================================================================
+# Yane module for console management.
+#===============================================================================
+
+TMUX=/usr/bin/tmux
+idpane=0
+idwin=0
+
+#-------------------------------------------------------------------------------
+# Open a console in a window in $SESSION_ID using tmux
+#   $1 : hostName
+#-------------------------------------------------------------------------------
+yaneOpenConsoleWindow_tmux () {
+   c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
+
+   logMessage LOG "Running console '$c' in terminal '$t'"
+   $TMUX has -t $SESSION_ID 2> /dev/null
+   if [ $? -eq 1 ]; then  # Si aucune session tmux n'existe
+     $TMUX new -s $SESSION_ID -d  # Créer la session
+     # On ouvre la console de l'hôte
+     $TMUX send-keys -t "$SESSION_ID:$idwin.$idpane" "$c" Enter
+     $TMUX send-keys -t "$SESSION_ID:$idwin.$idpane" clear Enter
+   elif [ $idpane -eq 3 ]; then # Sinon si la fenêtre tmux possède 4 panneaux
+     (( idwin++ ))
+     $TMUX neww -t $SESSION_ID -n $idwin # On creer une nouvelle fenêtre
+     idpane=0
+     $TMUX send-keys -t "$SESSION_ID:$idwin.$idpane" "$c" Enter
+     $TMUX send-keys -t "$SESSION_ID:$idwin.$idpane" clear Enter
+   else
+     $TMUX new -s buffer -d # On creer une nouvelle session
+     if [ $idpane -lt 1 ]; then
+       # On fusionne la nouvelle session à droite
+       $TMUX joinp -s buffer:0.0 -t $SESSION_ID:$idwin.$idpane -h
+       (( idpane++ ))
+       $TMUX send-keys -t "$SESSION_ID:$idwin.$idpane" "$c" Enter
+       $TMUX send-keys -t "$SESSION_ID:$idwin.$idpane" clear Enter
+     else
+       if [ $idpane -eq 2 ]; then
+         # On fusionne la nouvelle session en bas à droite
+         $TMUX joinp -s buffer:0.0 -t $SESSION_ID:$idwin.0 -v
+         $TMUX send-keys -t "$SESSION_ID:$idwin.1" "$c" Enter
+         $TMUX send-keys -t "$SESSION_ID:$idwin.1" clear Enter
+         (( idpane++ ))
+       else
+         # On fusionne la nouvelle session en bas à gauche 
+         $TMUX joinp -s buffer:0.0 -t $SESSION_ID:$idwin.$idpane -v
+         $TMUX send-keys -t "$SESSION_ID:$idwin.2" "$c" Enter
+         $TMUX send-keys -t "$SESSION_ID:$idwin.2" clear Enter
+         (( idpane++ ))
+       fi
+     fi
+   fi
+}

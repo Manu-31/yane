@@ -1,6 +1,8 @@
 #!/bin/bash
 #===============================================================================
-# Yane module for console management. It use xterm and tmux.
+# Yane module for console management.
+# Warning : this module doesn't work alone.
+# You need yane_module_consoles_(xterm/tmux)
 #===============================================================================
 
 TMUX=/usr/bin/tmux
@@ -16,46 +18,23 @@ yaneOpenConsole () {
 }
 
 #-------------------------------------------------------------------------------
-# Open a console in a window in $SESSION_ID
-#   $1 : hostName
-#   $2 : tmux id window
-#   $3 : tmux id pane
-#-------------------------------------------------------------------------------
-yaneOpenConsoleWindow () {
-   c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
-
-   logMessage LOG "Running console '$c' in terminal '$t'"
-
-   $TMUX send-keys -t "session_$SESSION_ID:$2.$3" "$c" Enter
-   $TMUX send-keys -t "session_$SESSION_ID:$2.$3" clear Enter
-}
-
-#-------------------------------------------------------------------------------
 # Open console on listed hosts
 #-------------------------------------------------------------------------------
 yaneOpenConsoleWindows () {
    logMessage LOG "Opening consoles"
-
-
-   NB_CONSOLES=${#consHost[@]}
-   NB_WINDOWS=$(echo "$NB_CONSOLES/4 + 1" | bc)
-
-   $TMUX new-session -s session_$SESSION_ID -d
-   tkpanes $NB_CONSOLES session_$SESSION_ID
-
-   idwindow=0
-   idpane=0
-   for hn in ${consHost[@]}
+   for idx in ${!consHost[@]}
    do
-      logMessage LOG "Opening console on $hn"
-      yaneOpenConsoleWindow $hn $idwindow $idpane
-      idpane=$(echo "($idpane+1)%4" | bc)
-      if [ $idpane -eq 0 ]; then
-         idwindow=$(echo "$idwindow+1" | bc)
-      fi
+     if [ "${consHost[$idx]}" = "xterm" ]; then
+       yaneOpenConsoleWindow_xterm $idx
+     elif [ "${consHost[$idx]}" = "tmux" ]; then
+       yaneOpenConsoleWindow_tmux $idx
+     fi
    done
-   $XTERM -e "tmux attach -t session_$SESSION_ID" &
-   echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
+   $TMUX has -t $SESSION_ID 2> /dev/null
+   if [ $? -eq 0 ]; then
+     $XTERM -e "tmux attach -t $SESSION_ID" &
+     echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
+   fi
 }
 
 #-------------------------------------------------------------------------------
@@ -70,88 +49,11 @@ yaneKillConsoles () {
           $KILL $c
       done
       $RM ./.yane_${SESSION_ID}_module_consoles.pid
-      $TMUX kill-session -t session_$SESSION_ID
+
+      # Check if tmux. If true kill all tmux.
+      $TMUX has -t $SESSION_ID 2> /dev/null
+      if [ $? -eq 0 ]; then
+        $TMUX kill-session -t $SESSION_ID
+      fi
    fi
-}
-
-#===============================================================================
-# Next functions are used to build tmux interfaces
-#===============================================================================
-
-#------------------------------------------------------------------------------#
-# tsplit permet de split une fenetre tmux avec n par m panneaux
-#   $1 : nombre de colones
-#   $2 : nombre de ligne
-#   $3 : Fenetre tmux
-#            <session-ID>:<window-ID>
-#------------------------------------------------------------------------------#
-tsplit() {
-    col=$(echo "$1-1" | bc)
-    line=$(echo "$2-1" | bc)
-    for i in `seq 1 $col`;
-    do
-        $TMUX splitw -h -t $3
-    done
-    $TMUX select-layout -t $3 even-horizontal
-    for k in `seq 1 $1`;
-    do
-        percent=$(echo "100-100/$2" | bc)
-        for j in `seq 1 $line`;
-        do
-            $TMUX splitw -v -p $percent -t $3
-            percent=$(echo "100-100/($line - $j + 1)" | bc)
-        done
-        $TMUX select-pane -L
-    done
-    $TMUX select-pane -t $3.0
-}
-
-#------------------------------------------------------------------------------#
-# t4panes permet de split votre fenetre tmux en 4 panneaux
-#   $1 : Fenetre tmux
-#        <session-ID>:<window-ID>
-#------------------------------------------------------------------------------#
-t4panes() {
-    tsplit 2 2 $1
-}
-
-#------------------------------------------------------------------------------#
-# tnwin creer n fenetres sur une session tmux elles mêmes
-#	composées de 4 panneaux
-#   $1 : number of windows
-#   $2 : Session Tmux
-#           <session-ID>
-#------------------------------------------------------------------------------#
-tnwin() {
-    if [ $1 -gt 0 ]; then
-        t4panes "$2:0"
-        for k in `seq 2 $1`;
-        do
-            $TMUX new-window -t "$2:$(echo $k-1 | bc)"
-            t4panes "$2:$(echo $k-1 | bc)"
-        done
-        $TMUX select-window -t "$2:0"
-    fi
-}
-
-#------------------------------------------------------------------------------#
-# tkpanes creer k panneaux sur une session tmux. Utilise des fenetres de 4
-# panneaux.
-#   $1 : nb_panes
-#   $2 : Session tmux
-#        <session-ID>
-#------------------------------------------------------------------------------#
-tkpanes() {
-    if [ $1 -eq 4 ]; then
-        t4panes "$2:0"
-    elif [ $1 -lt 4 ]; then
-        tsplit 1 $1 "$2:0"
-    else
-        NB_WINDOWS=$(echo "$1/4" | bc)
-        tnwin $NB_WINDOWS $2
-        if [ $(echo "$1%4" | bc) -ne 0 ]; then
-            $TMUX new-window -t "$2:$NB_WINOWS"
-            tsplit 1 $(echo "$1%4" | bc) "$2:$NB_WINDOWS"
-        fi
-    fi
 }

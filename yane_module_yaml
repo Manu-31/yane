@@ -93,13 +93,13 @@ buildNetworkFromFile_yaml () {
    if [ "$network_consoles" == "all" ] ; then
       for idx in ${hostName[@]}
       do
-         consHost[$idx]=$idx
+         consHost[$idx]="xterm"
       done
    else
-      for idx in ${network_consoles[@]}
+      for idx in ${!network_consoles__host[@]}
       do
-         if [ "${hostName[$idx]}" == "$idx" ]  ; then
-             consHost[$idx]=$idx
+         if [ "${hostName[${network_consoles__host[$idx]}]}" == "${network_consoles__host[$idx]}" ]  ; then
+             consHost[${network_consoles__host[$idx]}]=${network_consoles__mode[$idx]}
          else
              logMessage ERR "Cannot open console on unknown host '$idx' ..."
          fi
