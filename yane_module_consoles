@@ -24,17 +24,8 @@ yaneOpenConsoleWindows () {
    logMessage LOG "Opening consoles"
    for idx in ${!consHost[@]}
    do
-     if [ "${consHost[$idx]}" = "xterm" ]; then
-       yaneOpenConsoleWindow_xterm $idx
-     elif [ "${consHost[$idx]}" = "tmux" ]; then
-       yaneOpenConsoleWindow_tmux $idx
-     fi
+       yaneOpenConsoleWindow_${consHost[$idx]} $idx
    done
-   $TMUX has -t $SESSION_ID 2> /dev/null
-   if [ $? -eq 0 ]; then
-     $XTERM -e "tmux attach -t $SESSION_ID" &
-     echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
-   fi
 }
 
 #-------------------------------------------------------------------------------

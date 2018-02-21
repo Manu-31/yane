@@ -18,6 +18,8 @@ yaneOpenConsoleWindow_tmux () {
    $TMUX has -t $SESSION_ID 2> /dev/null
    if [ $? -eq 1 ]; then  # Si aucune session tmux n'existe
      $TMUX new -s $SESSION_ID -d  # Créer la session
+     $XTERM -e "tmux attach -t $SESSION_ID" &
+     echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
      # On ouvre la console de l'hôte
      $TMUX send-keys -t "$SESSION_ID:$idwin.$idpane" "$c" Enter
      $TMUX send-keys -t "$SESSION_ID:$idwin.$idpane" clear Enter
@@ -43,7 +45,7 @@ yaneOpenConsoleWindow_tmux () {
          $TMUX send-keys -t "$SESSION_ID:$idwin.1" clear Enter
          (( idpane++ ))
        else
-         # On fusionne la nouvelle session en bas à gauche 
+         # On fusionne la nouvelle session en bas à gauche
          $TMUX joinp -s buffer:0.0 -t $SESSION_ID:$idwin.$idpane -v
          $TMUX send-keys -t "$SESSION_ID:$idwin.2" "$c" Enter
          $TMUX send-keys -t "$SESSION_ID:$idwin.2" clear Enter
