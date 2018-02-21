@@ -51,7 +51,11 @@ Afin d'interagir avec notre réseau. On peut afficher les consoles de chaque hô
 consoles:
   - all
 ```
-
+Si l'on souhaite seulement certaines consoles il suffit de les spécifier de la façon suivante :
+```yaml
+consoles:
+  - host-A host-B
+```
 Enfin on peut lancez la simulation :
 
 `# yane`
@@ -122,7 +126,7 @@ network:
 
    Si nous lançons à nouveau une simulation, nous constatons que c'est
 bien docker qui est utilisé et non plus les namespace.
-   
+
 # Ajouter des fichiers sur un hôte
 
 Si l'on souhaite démarrer un réseau avec plusieurs hôtes, il est

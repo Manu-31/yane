@@ -1,6 +1,6 @@
 network:
   name: ospf-1
-  version: 1.0
+  version: 1.1
   hosts:
     -
       name: canada
@@ -61,7 +61,21 @@ network:
       interfaces: router-AS:v1:192.168.4.254/24!russia:v0:192.168.4.1/24!china:v0:192.168.4.2/24!japan:v0:192.168.4.3/24
 
   consoles:
-    - all
+    -
+      host: router-NA
+      mode: tmux
+    -
+      host: router-EU
+      mode: tmux
+    -
+      host: router-AS
+      mode: tmux
+    -
+      host: usa
+      mode: xterm
+    -
+      host: japan
+      mode: xterm
 
   dumpif:
     - all

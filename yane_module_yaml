@@ -93,13 +93,13 @@ buildNetworkFromFile_yaml () {
    if [ "$network_consoles" == "all" ] ; then
       for idx in ${hostName[@]}
       do
-         consHost[$idx]=$idx
+         consHost[$idx]="xterm"
       done
    else
-      for idx in ${network_consoles[@]}
+      for idx in ${!network_consoles__host[@]}
       do
-         if [ "${hostName[$idx]}" == "$idx" ]  ; then
-             consHost[$idx]=$idx
+         if [ "${hostName[${network_consoles__host[$idx]}]}" == "${network_consoles__host[$idx]}" ]  ; then
+             consHost[${network_consoles__host[$idx]}]=${network_consoles__mode[$idx]}
          else
              logMessage ERR "Cannot open console on unknown host '$idx' ..."
          fi
@@ -131,26 +131,4 @@ buildNetworkFromFile_yaml () {
           logMessage ERR "Cannot snoop on unknown host '$hn' ..."
       fi
    done
-}
-
-#-------------------------------------------------------------------------------
-# Read the number of docker specified in yane.yml and exit if there are
-# enough or too much images defined.
-#-------------------------------------------------------------------------------
-isNbDockersValid () {
-  nbDocker=0
-  for mode in ${network_hosts__mode[@]}
-  do
-    if [ $mode = "docker" ]; then
-      (( nbDocker++ ))
-    fi
-  done
-
-  if [ $nbDocker -lt ${#network_hosts__image[@]} ]; then
-    logMessage ERR "Only dockers must have an image..."
-    exit
-  elif [ $nbDocker -gt ${#network_hosts__image[@]} ]; then
-    logMessage ERR "Too much dockers and not enough images..."
-    exit
-  fi
 }
