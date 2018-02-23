@@ -14,3 +14,7 @@ yaneOpenConsoleWindow_xterm () {
 
    echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
 }
+
+yaneKillConsoles_xterm () {
+  logMessage LOG "Killing xterm $1 (nothing done)"
+}

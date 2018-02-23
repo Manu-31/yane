@@ -22,9 +22,9 @@ yaneOpenConsole () {
 #-------------------------------------------------------------------------------
 yaneOpenConsoleWindows () {
    logMessage LOG "Opening consoles"
-   for idx in ${!consHost[@]}
+   for idx in ${!console_mode[@]}
    do
-       yaneOpenConsoleWindow_${consHost[$idx]} $idx
+       yaneOpenConsoleWindow_${console_mode[$idx]} $idx
    done
 }
 
@@ -41,10 +41,9 @@ yaneKillConsoles () {
       done
       $RM ./.yane_${SESSION_ID}_module_consoles.pid
 
-      # Check if tmux. If true kill all tmux.
-      $TMUX has -t $SESSION_ID 2> /dev/null
-      if [ $? -eq 0 ]; then
-        $TMUX kill-session -t $SESSION_ID
-      fi
+      for hostName in ${!console_mode[@]}
+      do
+        yaneKillConsoles_${console_mode[$hostName]} $hostName
+      done
    fi
 }

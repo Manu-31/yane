@@ -66,14 +66,17 @@ declare -A hostNum              # Array of host numbers : 0 1, ...
 declare -A hostName             # Array of host names
 declare -A hostMode             # Array of host mode
 declare -A hostFiles            # Array of host FS
-declare -A hostDockerImage            # Array of host image
-declare -A consHost             # Array of hosts to run console on
+declare -A hostDockerImage      # Array of host image
+declare -A console_mode         # Array of consoles mode
+declare -A console_session_tmux # Array of tmux sessions
 declare -A p2pLinks             # Array of p2p links
 declare -A interfaces           # Array of known interfaces
 declare -A dumpIf               # Array of interface to snoop
 declare -A modules              # Array o loaded modules
 declare -A bridgeName   	      # Array of interfaces indexed by bridges name
 declare -A bridgeInterfaces     # Array of interfaces indexed by bridges name
+declare -A idpane               # TMUX_MODULE (provisoire)
+declare -A idwin                # TMUX_MODULE (provisoire)
 
 FIFO_ROOT=/tmp/nssi
 SNOOP_PID_FILE=./.yane_snooping_pids
