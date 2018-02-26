@@ -96,9 +96,7 @@ La fonction suivante doit renvoyer une chaîne de caractères contenant
 la commande à lancer pour obtenir un terminal sur l'hôte dont le nom
 est passé en paramètre.
 
-```yaneConsoleCmd_namespace nom```
+```yaneConsoleCmd_netns nom```
 
 La commande en question sera typiquement lancée dans une console
 (par exemple un xterm) ouverte pour cela.
-
-
