@@ -1,13 +1,13 @@
 #!/bin/bash
 #===============================================================================
-# Namespace helper functions
+# netns helper functions
 #===============================================================================
 #-------------------------------------------------------------------------------
 # create host
 #    $1 : hostname
 #-------------------------------------------------------------------------------
-createHost_namespace () {
-   logMessage LOG "Creating namespace $1"
+createHost_netns () {
+   logMessage LOG "Creating netns $1"
 
    $IP netns del $1 > /dev/null 2>&1 ||$TRUE
    $IP netns add $1
@@ -18,24 +18,24 @@ createHost_namespace () {
 # boot host
 #    $1 : hostname
 #-------------------------------------------------------------------------------
-bootHost_namespace () {
-   logMessage LOG "Booting namespace $1 (nothing done)"
+bootHost_netns () {
+   logMessage LOG "Booting netns $1 (nothing done)"
 }
 
 #-------------------------------------------------------------------------------
 # shutdown host
 #    $1 : hostname
 #-------------------------------------------------------------------------------
-shutdownHost_namespace () {
-   logMessage LOG "Shuting down namespace $1"
+shutdownHost_netns () {
+   logMessage LOG "Shuting down netns $1"
 }
 
 #-------------------------------------------------------------------------------
 # delete host
 #    $1 : hostname
 #-------------------------------------------------------------------------------
-deleteHost_namespace () {
-   logMessage LOG "Deleting namespace $1"
+deleteHost_netns () {
+   logMessage LOG "Deleting netns $1"
 
    $IP netns del $1 > /dev/null 2>&1 ||$TRUE
 
@@ -46,7 +46,7 @@ deleteHost_namespace () {
 # return command that could open a terminal
 #    $1 : hostname
 #-------------------------------------------------------------------------------
-yaneConsoleCmd_namespace() {
+yaneConsoleCmd_netns() {
    echo "$IP netns exec $1 $BASH"
 }
 
@@ -55,10 +55,10 @@ yaneConsoleCmd_namespace() {
 #    $1 : hostname
 #    $2 : interface name (already created)
 #    $3 : IPv4 address (or "")
-#    $4 : namespace in which $2 is defined
+#    $4 : netns in which $2 is defined
 #-------------------------------------------------------------------------------
-yaneAddHostInterface_namespace() {
-   logMessage LOG "Adding int '$2' from '$4' in namespace $1"
+yaneAddHostInterface_netns() {
+   logMessage LOG "Adding int '$2' from '$4' in netns $1"
 
    $IP netns exec $4 $IP link set $2 netns $1
    if [ -n "$3" ] ; then
@@ -70,7 +70,7 @@ yaneAddHostInterface_namespace() {
 #-------------------------------------------------------------------------------
 # Have we created host $1 ?
 #-------------------------------------------------------------------------------
-yaneHostExists_namespace() {
+yaneHostExists_netns() {
    if [ -z "`$IP netns list|grep $srch`" ] ; then
       return 1
    else
@@ -84,7 +84,7 @@ yaneHostExists_namespace() {
 #    $2 : source basedir in the host filsystem (may be relative to .)
 #    $3 : destination basedir in the guest (must be absolute)
 #-------------------------------------------------------------------------------
-yaneHostPopulateFS_namespace() {
+yaneHostPopulateFS_netns() {
     logMessage LOG "Copying $2 to $3 in $1"
     $MKDIR -p /etc/netns/$1 >/dev/null 2>&1 || $TRUE
     $CP -a $2/* /etc/netns/$1 >/dev/null 2>&1 || $TRUE
