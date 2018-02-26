@@ -4,10 +4,10 @@ network:
   hosts:
     -
       name: host-a
-      mode: namespace
+      mode: netns
     -
       name: host-b
-      mode: namespace
+      mode: netns
 
   links:
     - host-a:v0:192.168.1.1/24!host-b:v0:192.168.1.2/24

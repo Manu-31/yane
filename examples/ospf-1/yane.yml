@@ -4,39 +4,39 @@ network:
   hosts:
     -
       name: canada
-      mode: namespace
+      mode: netns
     -
       name: usa
-      mode: namespace
+      mode: netns
     -
       name: mexico
-      mode: namespace
+      mode: netns
     -
       name: router-NA
       mode: docker
       image: quagga:latest
     -
       name: france
-      mode: namespace
+      mode: netns
     -
       name: germany
-      mode: namespace
+      mode: netns
     -
       name: italy
-      mode: namespace
+      mode: netns
     -
       name: router-EU
       mode: docker
       image: quagga:latest
     -
       name: russia
-      mode: namespace
+      mode: netns
     -
       name: china
-      mode: namespace
+      mode: netns
     -
       name: japan
-      mode: namespace
+      mode: netns
     -
       name: router-AS
       mode: docker

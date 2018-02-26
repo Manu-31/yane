@@ -7,11 +7,11 @@ network:
       mode: docker
       image: default
     -
-      name: namespace-b
-      mode: namespace
+      name: netns-b
+      mode: netns
 
   links:
-    - docker-a:v0:192.168.1.1/24!namespace-b:v0:192.168.1.2/24
+    - docker-a:v0:192.168.1.1/24!netns-b:v0:192.168.1.2/24
 
   consoles:
     - all

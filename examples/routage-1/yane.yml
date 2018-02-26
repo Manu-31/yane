@@ -2,25 +2,25 @@ network :
   name: rfc-2650
   version: 0.1
   hosts:
-    - 
+    -
       name: as1-r1
-      mode: namespace
+      mode: netns
       files: as1-r1/etc:/etc
-    - 
+    -
       name: as2-r1
-      mode: namespace
+      mode: netns
       files: as2-r1/etc:/etc
-    - 
+    -
       name: as2-r2
-      mode: namespace
+      mode: netns
       files: as2-r2/etc:/etc
-    - 
+    -
       name: as2-r3
-      mode: namespace
+      mode: netns
       files: as2-r3/etc:/etc
-    - 
+    -
       name: as2-r4
-      mode: namespace
+      mode: netns
       files: as2-r4/etc:/etc
 
   links :
@@ -29,6 +29,6 @@ network :
   consoles :
     - as1-r1
     - as2-r1
-    
+
   dumpif :
     - all
