@@ -5,7 +5,6 @@
 
 TMUX=/usr/bin/tmux
 
-
 #-------------------------------------------------------------------------------
 # Open a console in a window in $SESSION_ID using tmux
 #   $1 : hostName
@@ -20,7 +19,7 @@ yaneOpenConsoleWindow_tmux () {
      idpane[$t]=0
      idwin[$t]=0
      $TMUX new -s $SESSION_ID$t -d # Créer la session
-     $XTERM -e "tmux attach -t $SESSION_ID$t" &
+     $XTERM -title $t -e "$TMUX attach -t $SESSION_ID$t" &
      echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
      # On ouvre la console de l'hôte
      $TMUX send-keys -t "$SESSION_ID$t:${idwin[$t]}.${idpane[$t]}" "$c" Enter
@@ -57,8 +56,10 @@ yaneOpenConsoleWindow_tmux () {
    fi
 }
 
+#-------------------------------------------------------------------------------
 # Kill tmux session
-# $1 : hostname
+#    $1 : hostname
+#-------------------------------------------------------------------------------
 yaneKillConsoles_tmux () {
   $TMUX kill-session -t $SESSION_ID${console_session_tmux[$1]} 2> /dev/null
 }

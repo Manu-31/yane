@@ -2,10 +2,9 @@
 #===============================================================================
 # Yane module for console management.
 # Warning : this module doesn't work alone.
-# You need yane_module_consoles_(xterm/tmux)
+# You need some submodules like : yane_module_consoles_(xterm/tmux)
 #===============================================================================
 
-TMUX=/usr/bin/tmux
 
 #-------------------------------------------------------------------------------
 # Open a console in the shell

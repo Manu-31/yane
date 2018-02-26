@@ -76,39 +76,39 @@ network:
     -
       host: usa
       mode: tmux
-      session: station
-    -
-      host: japan
-      mode: tmux
-      session: station
-    -
-      host: france
-      mode: tmux
-      session: station
-    -
-      host: russia
-      mode: tmux
-      session: station
-    -
-      host: china
-      mode: tmux
-      session: station
-    -
-      host: italy
-      mode: tmux
-      session: station
-    -
-      host: canada
-      mode: tmux
-      session: station
+      session: america
     -
       host: mexico
       mode: tmux
-      session: station
+      session: america
+    -
+      host: canada
+      mode: tmux
+      session: america
+    -
+      host: france
+      mode: tmux
+      session: europe
+    -
+      host: italy
+      mode: tmux
+      session: europe
     -
       host: germany
       mode: tmux
-      session: station
+      session: europe
+    -
+      host: japan
+      mode: tmux
+      session: asia
+    -
+      host: russia
+      mode: tmux
+      session: asia
+    -
+      host: china
+      mode: tmux
+      session: asia
 
   dumpif:
     - all
