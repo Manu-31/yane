@@ -24,7 +24,7 @@ Cette fonction est appelé pour chaque terminal. Ainsi si vous souhaiter ouvrir 
 
 Son rôle est donc d'ouvrir un terminal (xterm, gnome-terminal, konsole, terminator, ...) et d'y lancer la commande permettant d'ouvrir un shell sur la machine. Celle-ci est obtenu grâce à la fonction `yaneConsoleCmd_hostMode` des modules de virtualisations.
 
-**Important :**Le module [yane_module_console](../yane_module_console) ne doit pas être modifier car c'est lui qui appellera ces 2 fonctions.
+**Important :**  Le module [yane_module_console](../yane_module_console) ne doit pas être modifier car c'est lui qui appellera ces 2 fonctions.
 
 Dans le cas de terminaux plus complexe comme tmux ou terminator qui permettent l'ouverture de plusieurs terminaux en une seule fenêtre vous devrez probablement complexifier votre fonction. En effet vous devrez non seulement ouvrir un nouveau terminal mais aussi l'ouvrir au bon endroit. Le module [yane_module_consoles_tmux](yane_module_consoles_tmux) en est un exemple. Si vous avez besoin de définir des variables global vous devrez alors les déclarer dans le fichier [yane](../yane).
 
