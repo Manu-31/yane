@@ -40,6 +40,8 @@ deleteHost_netns () {
    $IP netns del $1 > /dev/null 2>&1 ||$TRUE
 
    $RM -rf /etc/netns/$1
+   #Remove rc file
+   $RM -rf .yane_rcfiles/$1.rc
 }
 
 #-------------------------------------------------------------------------------
@@ -47,7 +49,12 @@ deleteHost_netns () {
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 yaneConsoleCmd_netns() {
-   echo "$IP netns exec $1 $BASH"
+  #Create rc file in order to get a custom prompt
+  mkdir -p .yane_rcfiles
+  echo "#!$BASH" > .yane_rcfiles/$1.rc
+  echo "PS1=\"\u@$1:[\W]# \"" >> .yane_rcfiles/$1.rc
+  
+  echo "$IP netns exec $1 $BASH --rcfile .yane_rcfiles/$1.rc"
 }
 
 #-------------------------------------------------------------------------------

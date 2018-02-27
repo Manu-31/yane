@@ -11,7 +11,8 @@
 #   $1 : hostName
 #-------------------------------------------------------------------------------
 yaneOpenConsole () {
-   c=$(eval yaneConsoleCmd_${hostMode[$1]} $1)
+   echo "${SESSION_ID}_$1"
+   c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
    logMessage LOG "Running console '$c'"
    $c
 }
