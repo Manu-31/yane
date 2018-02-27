@@ -53,7 +53,7 @@ yaneConsoleCmd_netns() {
   mkdir -p .yane_rcfiles
   echo "#!$BASH" > .yane_rcfiles/$1.rc
   echo "PS1=\"\u@$1:[\W]# \"" >> .yane_rcfiles/$1.rc
-  
+
   echo "$IP netns exec $1 $BASH --rcfile .yane_rcfiles/$1.rc"
 }
 

@@ -651,18 +651,34 @@ yaneLoadModules
 #-------------------------------------------------------------------------------
 while [[ $# > 0 ]] ;
 do
-   case "$1" in
-      -c )
-	 shift
-         buildNetworkFromFile_yaml $NET_CONFIG_FILE
-	 yaneOpenConsole "$1"
-	 exitYane
-      ;;
-      -d )
-          parse_yaml $NET_CONFIG_FILE
-          DEBUG=True
-	 ;;
-      -f )
+  case "$1" in
+    -c )
+	  shift
+      buildNetworkFromFile_yaml $NET_CONFIG_FILE
+      if [ -z "${SESSION_ID}" ] ; then
+        nbActiveSessions=`$WC -l  ${NET_CONFIG_FILE}.sessions | cut -d" " -f 1`
+   	    if [ $nbActiveSessions == 1 ] ; then
+   		    SESSION_ID=`$CAT ${NET_CONFIG_FILE}.sessions`
+   	    else
+          echo "$nbActiveSessions active sessions, please select (option -s)"
+   	      listActiveSessions
+   	      exitYane
+   	    fi
+      fi
+      cat ${NET_CONFIG_FILE}.sessions | grep $SESSION_ID
+      if [ $? -eq 0 ]; then
+	      yaneOpenConsole "$1"
+	      exitYane
+      else
+        logMessage ERR "Cannot open console because Unknown session $SESSION_ID"
+        exitYane
+      fi
+    ;;
+    -d )
+      parse_yaml $NET_CONFIG_FILE
+      DEBUG=True
+	  ;;
+    -f )
 	 shift
          NET_CONFIG_FILE="$1"
       ;;

@@ -11,10 +11,14 @@
 #   $1 : hostName
 #-------------------------------------------------------------------------------
 yaneOpenConsole () {
-   echo "${SESSION_ID}_$1"
-   c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
-   logMessage LOG "Running console '$c'"
-   $c
+   if [ -n "${hostMode[$1]}" ]; then
+     c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
+     logMessage LOG "Running console '$c'"
+     $c
+   else
+     logMessage ERR "Can't open console because Unknown $1 in session : $SESSION_ID"
+   fi
+
 }
 
 #-------------------------------------------------------------------------------
