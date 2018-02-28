@@ -11,13 +11,12 @@ DEFAULT_IMAGE="alpine:latest"
 #    $2 : image
 #-------------------------------------------------------------------------------
 createHost_docker () {
-
   if [ "$2" == "default" ]; then
-    logMessage LOG "Creating docker container $1 from $DEFAULT_IMAGE"
-    $DOCKER create -it --name $1 --hostname $1 --network none --privileged $DEFAULT_IMAGE > /dev/null
+    logMessage LOG "Creating docker container ${SESSION_ID}_$1 from $DEFAULT_IMAGE"
+    $DOCKER create -it --name ${SESSION_ID}_$1 --hostname $1 --network none --privileged $DEFAULT_IMAGE > /dev/null
   else #Warning should verify that $2 is a valid image
-    logMessage LOG "Creating docker container $1 from $2"
-    $DOCKER create -it --name $1 --hostname $1 --network none --privileged $2 > /dev/null
+    logMessage LOG "Creating docker container ${SESSION_ID}_$1 from $2"
+    $DOCKER create -it --name ${SESSION_ID}_$1 --hostname $1 --network none --privileged $2 > /dev/null
   fi
 }
 
@@ -26,12 +25,12 @@ createHost_docker () {
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 bootHost_docker () {
-   logMessage LOG "Booting docker container $1"
+   logMessage LOG "Booting docker container ${SESSION_ID}_$1"
 
-   $DOCKER start $1 > /dev/null # boot du container
+   $DOCKER start ${SESSION_ID}_$1 > /dev/null # boot du container
    # Rendre le container manipulable par iproute2
-   CONTAINER_PID=$($DOCKER inspect --format='{{.State.Pid}}' $1)
-   $LN -s /proc/$CONTAINER_PID/ns/net /var/run/netns/$1
+   CONTAINER_PID=$($DOCKER inspect --format='{{.State.Pid}}' ${SESSION_ID}_$1)
+   $LN -s /proc/$CONTAINER_PID/ns/net /var/run/netns/${SESSION_ID}_$1
 }
 
 #-------------------------------------------------------------------------------
@@ -39,10 +38,10 @@ bootHost_docker () {
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 shutdownHost_docker () {
-   logMessage LOG "Shuting down docker container $1"
+   logMessage LOG "Shuting down docker container ${SESSION_ID}_$1"
 
-   $RM -rf /var/run/netns/$1
-   $DOCKER container kill $1 > /dev/null
+   $RM -rf /var/run/netns/${SESSION_ID}_$1
+   $DOCKER container kill ${SESSION_ID}_$1 > /dev/null
 }
 
 #-------------------------------------------------------------------------------
@@ -50,9 +49,9 @@ shutdownHost_docker () {
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 deleteHost_docker () {
-   logMessage LOG "Deleting docker container $1"
+   logMessage LOG "Deleting docker container ${SESSION_ID}_$1"
 
-   $DOCKER container rm $1 > /dev/null
+   $DOCKER container rm ${SESSION_ID}_$1 > /dev/null
 }
 
 #-------------------------------------------------------------------------------
@@ -60,7 +59,7 @@ deleteHost_docker () {
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 yaneConsoleCmd_docker () {
-   echo "$DOCKER attach $1"
+   echo "$DOCKER attach ${SESSION_ID}_$1"
 }
 
 #-------------------------------------------------------------------------------
@@ -73,10 +72,10 @@ yaneConsoleCmd_docker () {
 yaneAddHostInterface_docker () {
    logMessage LOG "Adding int '$2' from '$4' in docker container $1"
 
-   $IP netns exec $4 $IP link set $2 netns $1
+   $IP netns exec $4 $IP link set $2 netns ${SESSION_ID}_$1
    if [ -n "$3" ] ; then
-      $DOCKER exec $1 $IP link set $2 up
-      $DOCKER exec $1 $IP addr add $3 dev $2
+      $DOCKER exec ${SESSION_ID}_$1 $IP link set $2 up
+      $DOCKER exec ${SESSION_ID}_$1 $IP addr add $3 dev $2
    fi
 }
 
@@ -100,9 +99,9 @@ yaneHostExists_docker () {
 #    $3 : destination basedir in the guest (must be absolute)
 #-------------------------------------------------------------------------------
 yaneHostPopulateFS_docker() {
-    logMessage LOG "Copying $2 to $3 in $1"
+    logMessage LOG "Copying $2 to $3 in ${SESSION_ID}_$1"
 
-    $DOCKER cp $2 $1:$3
+    $DOCKER cp $2 ${SESSION_ID}_$1:$3
 }
 
 #-------------------------------------------------------------------------------

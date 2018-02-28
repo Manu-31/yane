@@ -10,8 +10,8 @@ TMUX=/usr/bin/tmux
 #   $1 : hostName
 #-------------------------------------------------------------------------------
 yaneOpenConsoleWindow_tmux () {
-   c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
-   t=${console_session_tmux[$1]}
+   c=$(eval yaneConsoleCmd_${hostMode[$1]} $1)
+   t=${SESSION_ID}_${console_session_tmux[$1]}
 
    logMessage LOG "Running console '$c' in terminal '$t' "
    $TMUX has -t $SESSION_ID$t 2> /dev/null

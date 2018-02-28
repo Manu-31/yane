@@ -334,7 +334,7 @@ createHosts () {
     do
       ht=${hostMode[$hn]}
       logMessage DEB "Creating host '${SESSION_ID}_$hn' (type $ht)"
-      createHost_${hostMode[$hn]} ${SESSION_ID}_$hn ${hostDockerImage[$hn]}
+      createHost_${hostMode[$hn]} $hn ${hostDockerImage[$hn]}
    done
 }
 
@@ -351,7 +351,7 @@ bootHosts () {
     do
       ht=${hostMode[$hn]}
       logMessage DEB "Booting host '${SESSION_ID}_$hn' (type $ht)"
-      bootHost_${hostMode[$hn]} ${SESSION_ID}_$hn
+      bootHost_${hostMode[$hn]} $hn
    done
 }
 
@@ -366,7 +366,7 @@ bootHosts () {
 shutdownHosts () {
    for hn in ${hostName[@]}
    do
-      shutdownHost_${hostMode[$hn]} ${SESSION_ID}_$hn
+      shutdownHost_${hostMode[$hn]} $hn
    done
 }
 
@@ -381,7 +381,7 @@ shutdownHosts () {
 deleteHosts () {
    for hn in ${hostName[@]}
    do
-      deleteHost_${hostMode[$hn]} ${SESSION_ID}_$hn
+      deleteHost_${hostMode[$hn]} $hn
    done
 }
 #-------------------------------------------------------------------------------
@@ -476,15 +476,15 @@ createLink () {
    # Search for source host
    if [[ ${hostMode["$srch"]} ]] ; then
        logMessage DEB "source host found"
-       yaneAddHostInterface_${hostMode[$srch]} ${SESSION_ID}_$srch $srci "$srca" yane-src-$$
+       yaneAddHostInterface_${hostMode[$srch]} $srch $srci "$srca" yane-src-$$
    fi
    # Search for destination host
    if [[ ${hostMode["$dsth"]} ]] ; then
       logMessage DEB "destination host found"
-      yaneAddHostInterface_${hostMode[$dsth]} ${SESSION_ID}_$dsth $dsti "$dsta" yane-dst-$$
+      yaneAddHostInterface_${hostMode[$dsth]} $dsth $dsti "$dsta" yane-dst-$$
    elif $(yaneBridgeExists $dsth) ; then
       logMessage DEB "destination bridge found"
-      yaneAddBridgeInterface ${SESSION_ID}_$dsth $dsti "$dsta" yane-dst-$$
+      yaneAddBridgeInterface $dsth $dsti "$dsta" yane-dst-$$
    fi
 
    # We can now delete transiant namespaces
@@ -665,7 +665,7 @@ do
    	      exitYane
    	    fi
       fi
-      cat ${NET_CONFIG_FILE}.sessions | grep $SESSION_ID
+      cat ${NET_CONFIG_FILE}.sessions | grep $SESSION_ID > /dev/null
       if [ $? -eq 0 ]; then
 	      yaneOpenConsole "$1"
 	      exitYane

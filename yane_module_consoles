@@ -12,11 +12,11 @@
 #-------------------------------------------------------------------------------
 yaneOpenConsole () {
    if [ -n "${hostMode[$1]}" ]; then
-     c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
+     c=$(eval yaneConsoleCmd_${hostMode[$1]} $1)
      logMessage LOG "Running console '$c'"
      $c
    else
-     logMessage ERR "Can't open console because Unknown $1 in session : $SESSION_ID"
+     logMessage ERR "Can't open console because Unknown host $1 in session : $SESSION_ID"
    fi
 
 }
@@ -44,10 +44,10 @@ yaneKillConsoles () {
           $KILL $c
       done
       $RM ./.yane_${SESSION_ID}_module_consoles.pid
-
-      for hostName in ${!console_mode[@]}
+      for n in ${!console_mode[@]}
       do
-        yaneKillConsoles_${console_mode[$hostName]} $hostName
+        yaneKillConsoles_${console_mode[$n]} $n
       done
+
    fi
 }

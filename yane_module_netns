@@ -7,11 +7,11 @@
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 createHost_netns () {
-   logMessage LOG "Creating netns $1"
+   logMessage LOG "Creating netns ${SESSION_ID}_$1"
 
-   $IP netns del $1 > /dev/null 2>&1 ||$TRUE
-   $IP netns add $1
-   $IP netns exec $1 $IP link set lo up
+   $IP netns del ${SESSION_ID}_$1 > /dev/null 2>&1 ||$TRUE
+   $IP netns add ${SESSION_ID}_$1
+   $IP netns exec ${SESSION_ID}_$1 $IP link set lo up
 }
 
 #-------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ createHost_netns () {
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 bootHost_netns () {
-   logMessage LOG "Booting netns $1 (nothing done)"
+   logMessage LOG "Booting netns ${SESSION_ID}_$1 (nothing done)"
 }
 
 #-------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ bootHost_netns () {
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 shutdownHost_netns () {
-   logMessage LOG "Shuting down netns $1"
+   logMessage LOG "Shuting down netns ${SESSION_ID}_$1"
 }
 
 #-------------------------------------------------------------------------------
@@ -35,13 +35,13 @@ shutdownHost_netns () {
 #    $1 : hostname
 #-------------------------------------------------------------------------------
 deleteHost_netns () {
-   logMessage LOG "Deleting netns $1"
+   logMessage LOG "Deleting netns ${SESSION_ID}_$1"
 
-   $IP netns del $1 > /dev/null 2>&1 ||$TRUE
+   $IP netns del ${SESSION_ID}_$1 > /dev/null 2>&1 ||$TRUE
 
-   $RM -rf /etc/netns/$1
+   $RM -rf /etc/netns/${SESSION_ID}_$1
    #Remove rc file
-   $RM -rf .yane_rcfiles/$1.rc
+   $RM -rf .yane_rcfiles/${SESSION_ID}_$1.rc
 }
 
 #-------------------------------------------------------------------------------
@@ -51,10 +51,10 @@ deleteHost_netns () {
 yaneConsoleCmd_netns() {
   #Create rc file in order to get a custom prompt
   mkdir -p .yane_rcfiles
-  echo "#!$BASH" > .yane_rcfiles/$1.rc
-  echo "PS1=\"\u@$1:[\W]# \"" >> .yane_rcfiles/$1.rc
+  echo "#!$BASH" > .yane_rcfiles/${SESSION_ID}_$1.rc
+  echo "PS1=\"\u@$1:[\W]# \"" >> .yane_rcfiles/${SESSION_ID}_$1.rc
 
-  echo "$IP netns exec $1 $BASH --rcfile .yane_rcfiles/$1.rc"
+  echo "$IP netns exec ${SESSION_ID}_$1 $BASH --rcfile .yane_rcfiles/${SESSION_ID}_$1.rc"
 }
 
 #-------------------------------------------------------------------------------
@@ -65,12 +65,12 @@ yaneConsoleCmd_netns() {
 #    $4 : netns in which $2 is defined
 #-------------------------------------------------------------------------------
 yaneAddHostInterface_netns() {
-   logMessage LOG "Adding int '$2' from '$4' in netns $1"
+   logMessage LOG "Adding int '$2' from '$4' in netns ${SESSION_ID}_$1"
 
-   $IP netns exec $4 $IP link set $2 netns $1
+   $IP netns exec $4 $IP link set $2 netns ${SESSION_ID}_$1
    if [ -n "$3" ] ; then
-      $IP netns exec $1 $IP link set $2 up
-      $IP netns exec $1 $IP addr add $3 dev $2
+      $IP netns exec ${SESSION_ID}_$1 $IP link set $2 up
+      $IP netns exec ${SESSION_ID}_$1 $IP addr add $3 dev $2
    fi
 }
 
@@ -92,7 +92,7 @@ yaneHostExists_netns() {
 #    $3 : destination basedir in the guest (must be absolute)
 #-------------------------------------------------------------------------------
 yaneHostPopulateFS_netns() {
-    logMessage LOG "Copying $2 to $3 in $1"
-    $MKDIR -p /etc/netns/$1 >/dev/null 2>&1 || $TRUE
-    $CP -a $2/* /etc/netns/$1 >/dev/null 2>&1 || $TRUE
+    logMessage LOG "Copying $2 to $3 in ${SESSION_ID}_$1"
+    $MKDIR -p /etc/netns/${SESSION_ID}_$1 >/dev/null 2>&1 || $TRUE
+    $CP -a $2/* /etc/netns/${SESSION_ID}_$1 >/dev/null 2>&1 || $TRUE
 }
