@@ -5,17 +5,22 @@ network:
     -
       name: r1
       mode: namespace
+      files: r1/etc:/
     -
       name: r2
       mode: namespace
+      files: r2/etc:/
     -
       name: r3
       mode: namespace
+      files: r3/etc:/
     -
       name: r4
-      mode: namespace
+      mode: namespace      
+      files: r4/etc:/
     -
       name: r5
+      files: r5/etc:/
       mode: namespace
     -
       name: a

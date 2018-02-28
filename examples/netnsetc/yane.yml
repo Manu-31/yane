@@ -9,7 +9,7 @@ network :
     -
       name: rt-b
       mode: namespace
-      files: rt-a/etc:/
+      files: rt-b/etc:/
 
   links :
     - rt-a:v0:192.168.10.1/24!rt-b:v0:192.168.10.2/24
