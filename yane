@@ -104,18 +104,18 @@ logMessage () {
    case "$1" in
       ERR )
          shift
-         echo $*
+         echo "$(date +%T) [ERROR] $*"
       ;;
       LOG )
          shift
          if [ "$VERBOSE" == "True" ] ; then
-            echo $*
+            echo "$(date +%T) [LOG] $*"
          fi
       ;;
       DEB )
          shift
          if [ "$DEBUG" == "True" ] ; then
-            echo $*
+            echo "$(date +%T) [DEBUG] $*"
          fi
       ;;
    esac
@@ -420,9 +420,9 @@ createLink () {
    fi
    # WARNING : first check $srch type
    if $(yaneHostExists "$srch") ; then
-       echo host "$srch" OK
+       logMessage LOG "host $srch OK"
    else
-       echo host "$srch" name ${hostName["$srch"]} unknown
+       logMessage ERR "$srch name ${hostName["$srch"]} unknown"
    fi
 
    if $(yaneDeviceCanHostInterface "$srch" "$srci") ; then
@@ -525,7 +525,7 @@ killLinks () {
 #     SESSION_ID
 #-------------------------------------------------------------------------------
 yaneBootNetworkSession () {
-   logMessage ERR "Booting network session ${SESSION_ID}"
+   logMessage LOG "Booting network session ${SESSION_ID}"
 
    # Creation of the default namespace
    YANE_DEFAULT_NETNS=yans-$SESSION_ID
