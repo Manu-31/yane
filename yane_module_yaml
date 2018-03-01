@@ -57,7 +57,7 @@ function parse_yaml_2 {
 # hostMode     array (name indexed) of host mode
 # hostFiles    array (name indexed) of host files
 # p2plinks     array of point to point links
-# consHost     array of host name to run console
+# console_mode     array of host name to run console
 #
 # bridgeName            array (name indexed) of BridgeName
 # bridgeInterfaces      array (name indexed) of BridgeInterface
@@ -93,13 +93,18 @@ buildNetworkFromFile_yaml () {
    if [ "$network_consoles" == "all" ] ; then
       for idx in ${hostName[@]}
       do
-         consHost[$idx]="xterm"
+         console_mode[$idx]="xterm"
       done
    else
+      ids=0
       for idx in ${!network_consoles__host[@]}
       do
          if [ "${hostName[${network_consoles__host[$idx]}]}" == "${network_consoles__host[$idx]}" ]  ; then
-             consHost[${network_consoles__host[$idx]}]=${network_consoles__mode[$idx]}
+             console_mode[${network_consoles__host[$idx]}]=${network_consoles__mode[$idx]}
+             if [ ${network_consoles__mode[$idx]} == "tmux" ]; then
+                 console_session_tmux[${network_consoles__host[$idx]}]=${network_consoles__session[$ids]}
+                 (( ids++ ))
+             fi
          else
              logMessage ERR "Cannot open console on unknown host '$idx' ..."
          fi

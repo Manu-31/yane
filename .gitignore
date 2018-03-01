@@ -31,6 +31,7 @@ DOCS/latex
 *.sessions
 *.pid
 *.swp
+*.rc
 
 # Archives .git (obligatoire après panne de courant =) )
 .git-old

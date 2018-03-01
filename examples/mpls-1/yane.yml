@@ -3,24 +3,24 @@ network :
   version: 1.0
   startup: run-before.sh
   hosts:
-    - 
+    -
       name: host-a
-      mode: namespace
+      mode: netns
     -
       name: host-b
-      mode: namespace
+      mode: netns
     -
       name: ler-i
-      mode: namespace
+      mode: netns
     -
       name: ler-e
-      mode: namespace
+      mode: netns
     -
       name: lsr-1
-      mode: namespace
+      mode: netns
     -
       name: lsr-2
-      mode: namespace
+      mode: netns
 
   links :
     - host-a:v0:192.168.10.10/24!ler-i:v0:192.168.10.4/24
@@ -32,6 +32,6 @@ network :
 
   consoles :
     - all
-    
+
   dumpif :
     - all

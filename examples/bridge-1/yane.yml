@@ -4,13 +4,13 @@ network :
   hosts:
     -
       name: host-a
-      mode: namespace
+      mode: netns
     -
       name: host-b
-      mode: namespace
+      mode: netns
     -
       name: host-c
-      mode: namespace
+      mode: netns
 
   bridges :
     -

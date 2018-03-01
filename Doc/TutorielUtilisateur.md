@@ -22,13 +22,13 @@ network:
   hosts:
     -
       name: host-a
-      mode: namespace
+      mode: netns
     -  
       name: host-b
-      mode: namespace
+      mode: netns
 ```
 
-Expliquons un peu ! Tout d'abord le réseau doit avoir un nom et une version. Ensuite on défini nos hôtes par un nom et un mode dans la balise hosts, vous pouvez spécifier autant d'hôte que vous le voulez. Le `mode` fait référence à la technique de virtualisation utilisée pour cet hôte. Ici on a pris `namespace`, mon on aurait très bien pu prendre `docker`, etc...
+Expliquons un peu ! Tout d'abord le réseau doit avoir un nom et une version. Ensuite on défini nos hôtes par un nom et un mode dans la balise hosts, vous pouvez spécifier autant d'hôte que vous le voulez. Le `mode` fait référence à la technique de virtualisation utilisée pour cet hôte. Ici on a pris `netns`, mon on aurait très bien pu prendre `docker`, etc...
 
 **Attention**: le YAML n'utilise aucune tabulation pour son indentation.
 
@@ -104,7 +104,7 @@ Sinon il faut récupérer l'id de la session que l'on désire stopper : `# yane 
 # Changer d'outil de simulation
 
    Imaginons que vous soyez un peu exigeant·e et que vous souhaitiez
-utiliser un autre outil de virtualisation que les namespace. Comment
+utiliser un autre outil de virtualisation que les netns. Comment
 pouvez-vous faire  ? C'est très simple, il vous suffit de changer le
 mode de l'hôte concerné.
 
@@ -125,7 +125,7 @@ network:
 ```
 
    Si nous lançons à nouveau une simulation, nous constatons que c'est
-bien docker qui est utilisé et non plus les namespace.
+bien docker qui est utilisé et non plus les netns.
 
 # Ajouter des fichiers sur un hôte
 

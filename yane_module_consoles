@@ -2,19 +2,23 @@
 #===============================================================================
 # Yane module for console management.
 # Warning : this module doesn't work alone.
-# You need yane_module_consoles_(xterm/tmux)
+# You need some submodules like : yane_module_consoles_(xterm/tmux)
 #===============================================================================
 
-TMUX=/usr/bin/tmux
 
 #-------------------------------------------------------------------------------
 # Open a console in the shell
 #   $1 : hostName
 #-------------------------------------------------------------------------------
 yaneOpenConsole () {
-   c=$(eval yaneConsoleCmd_${hostMode[$1]} $1)
-   logMessage LOG "Running console '$c'"
-   $c
+   if [ -n "${hostMode[$1]}" ]; then
+     c=$(eval yaneConsoleCmd_${hostMode[$1]} $1)
+     logMessage LOG "Running console '$c'"
+     $c
+   else
+     logMessage ERR "Can't open console because Unknown host $1 in session : $SESSION_ID"
+   fi
+
 }
 
 #-------------------------------------------------------------------------------
@@ -22,19 +26,10 @@ yaneOpenConsole () {
 #-------------------------------------------------------------------------------
 yaneOpenConsoleWindows () {
    logMessage LOG "Opening consoles"
-   for idx in ${!consHost[@]}
+   for idx in ${!console_mode[@]}
    do
-     if [ "${consHost[$idx]}" = "xterm" ]; then
-       yaneOpenConsoleWindow_xterm $idx
-     elif [ "${consHost[$idx]}" = "tmux" ]; then
-       yaneOpenConsoleWindow_tmux $idx
-     fi
+       yaneOpenConsoleWindow_${console_mode[$idx]} $idx
    done
-   $TMUX has -t $SESSION_ID 2> /dev/null
-   if [ $? -eq 0 ]; then
-     $XTERM -e "tmux attach -t $SESSION_ID" &
-     echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
-   fi
 }
 
 #-------------------------------------------------------------------------------
@@ -49,11 +44,10 @@ yaneKillConsoles () {
           $KILL $c
       done
       $RM ./.yane_${SESSION_ID}_module_consoles.pid
+      for n in ${!console_mode[@]}
+      do
+        yaneKillConsoles_${console_mode[$n]} $n
+      done
 
-      # Check if tmux. If true kill all tmux.
-      $TMUX has -t $SESSION_ID 2> /dev/null
-      if [ $? -eq 0 ]; then
-        $TMUX kill-session -t $SESSION_ID
-      fi
    fi
 }

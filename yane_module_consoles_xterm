@@ -6,11 +6,15 @@
 #-------------------------------------------------------------------------------
 yaneOpenConsoleWindow_xterm () {
    t=$XTERM
-   c=$(eval yaneConsoleCmd_${hostMode[$1]} ${SESSION_ID}_$1)
+   c=$(eval yaneConsoleCmd_${hostMode[$1]} $1)
 
    logMessage LOG "Running console '$c' in terminal '$t'"
 
-   $t -title $1 -e $c &
+   $t -title ${SESSION_ID}_$1 -e $c &
 
    echo $! >> ./.yane_${SESSION_ID}_module_consoles.pid
+}
+
+yaneKillConsoles_xterm () {
+  logMessage LOG "Killing xterm $1 (nothing done)"
 }

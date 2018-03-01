@@ -28,7 +28,7 @@ Puis chaque hôte est défini par une entrée  telle que :
 ```yaml
     -
       name: m1
-      mode: namespace
+      mode: netns
       image: default
       files: as1/etc:/etc
 ```
@@ -38,7 +38,7 @@ Puis chaque hôte est défini par une entrée  telle que :
    Le champ image (facultatif) permet de préciser une variante du système. Chaque mode définit une image par défaut, qui sera utilisée si ce champ n'est pas défini.
 
    Le champ files permet de définir un ensemble de fichiers et/ou de répertoires qui seront copiés dans l'hôte avant son démarrage.
-   
+
 ## Les liens
 
    Dans un réseau, des hôtes, c'est bien, mais avec des liens, c'est mieux ! Ils sont définis avec la syntaxe suivante
@@ -63,7 +63,7 @@ Puis chaque hôte est défini par une entrée  telle que :
    Les adresses sont facultatives.
 
    Notons que les liens peuvent également être décrits dans les ponts (voir la description des ponts pour cela)
-   
+
 ## Les ponts
 
    Un pont permet de relier plusieurs interfaces. Ils sont mis en
@@ -86,6 +86,5 @@ interfaces correspondantes sur le pont sont créées
 automatiquement. Cette variable est composée d'une liste, séparée par
 des ! d'interfaces sous la forme h:i[:a] (avec la même syntaxe qu'une
 variable de type link).
-   
-## Les consoles
 
+## Les consoles

@@ -4,11 +4,11 @@ network :
   hosts:
     -
       name: rt-a
-      mode: namespace
+      mode: netns
       files: rt-a/etc:/
     -
       name: rt-b
-      mode: namespace
+      mode: netns
       files: rt-b/etc:/
 
   links :

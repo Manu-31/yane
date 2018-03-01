@@ -4,33 +4,33 @@ network:
   hosts:
     -
       name: r1
-      mode: namespace
+      mode: netns
       files: r1/etc:/
     -
       name: r2
-      mode: namespace
+      mode: netns
       files: r2/etc:/
     -
       name: r3
-      mode: namespace
+      mode: netns
       files: r3/etc:/
     -
       name: r4
-      mode: namespace      
+      mode: netns
       files: r4/etc:/
     -
       name: r5
       files: r5/etc:/
-      mode: namespace
+      mode: netns
     -
       name: a
-      mode: namespace
+      mode: netns
     -
       name: b
-      mode: namespace
+      mode: netns
     -
       name: c
-      mode: namespace
+      mode: netns
 
 
   links:
@@ -45,5 +45,3 @@ network:
 
   consoles :
     - all
-    
-

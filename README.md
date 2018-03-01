@@ -6,87 +6,89 @@ Yes !
 
 ## Basic usage
 
-Run a session
-
-'''
-$ yane
-'''
-
-Kill the session
-
-'''
-$ yane -k
-'''
-
-##Configuration
-
-A yaml file describes the network
-
-
---------------------------------------------------------------------
---  
---------------------------------------------------------------------
-
-* General structure
-
-   A real mess !
-
-- Loading the network
-
-   This is done by a specific function (see later)
-
-- Booting the network
+- Load and boot the network
 
    Creation of the multiple parts of the network (hosts, bridges,
 links, ...)
+```
+$ yane [-v]
+```
+  `-v` to run yane in verbose mode.
 
 - Sessions
 
    Multiple sessions can be run simultaneously. A list of active
-sessions can be seen by
-
+sessions can be seen with :
+```
 $ yane -l
+```
+   A specific session can be killed with :
+```
+$ yane -s ID -k
+```
+  The `-s` id option is not needed if a single session is running
 
-   A specific session can be killed with
 
-$ yane -s id -k
+## Configuration and general structure
 
-   The -s id option is not needed if a single session is running
-   
+### Build your network :
 
-* Configuration
+  The network is described in a `yane.yml` file. This need to build different variables :
 
-   A function has to build the network (ie data structures describing
-the network). For this, it needs to build the following variables
+* host
 
-   bridgeInterfaces is an array (indexed by bridge names) of
-BridgeInterface
+  list of host name and mode
 
-* Data structure syntax
+  ```yaml
+  hosts:
+    name: NAME
+    mode: docker | netns
+  ```
 
-. BridgeInterface
+* BridgeInterface :
+
+  bridgeInterfaces is an array (indexed by bridge names) of BridgeInterface
 
    ! separated list of interface list
 
-example
-   host-a:v0!host-b:v0!host-c:v0
+   **Example :**
+  ```yaml
+  bridges:
+    name: myBr
+    mode: switched
+    interfaces: host-a:v0!host-b:v0!host-c:v0
+  ```
+* Point to point link
 
-. Point to point link
+   `i1!i2`
 
-   i1!i2
+   where
 
-where
    i1 is one interface
+
    i2 is another interface
-   
-. Interface
 
+   **Example :**
+  ```yaml
+  links:
+    - host-a:v0:192.168.1.1/24!host-b:v0:192.168.1.2/24
+  ```
+* Interface
+
+   As you can see above interfaces are always described with :
+   ```
    h:i[:A]
+   ```
 
-where
-   h is the host
-   i os the interface name within the host
-   a is an IPv4 address
+  where
 
-example
-   host-a:v0:192.168.10.2/24
+     `h` is the host
+
+     `i` os the interface name within the host
+
+     `a` is an IPv4 address
+
+  **Example :**
+  ```
+  host-a:v0:192.168.10.2/24
+  ```
