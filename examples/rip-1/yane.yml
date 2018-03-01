@@ -5,17 +5,22 @@ network:
     -
       name: r1
       mode: netns
+      files: r1/etc:/
     -
       name: r2
       mode: netns
+      files: r2/etc:/
     -
       name: r3
       mode: netns
+      files: r3/etc:/
     -
       name: r4
       mode: netns
+      files: r4/etc:/
     -
       name: r5
+      files: r5/etc:/
       mode: netns
     -
       name: a
