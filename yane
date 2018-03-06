@@ -75,6 +75,15 @@ declare -A dumpIf               # Array of interface to snoop
 declare -A modules              # Array o loaded modules
 declare -A bridgeName   	# Array of interfaces indexed by bridges name
 declare -A bridgeInterfaces     # Array of interfaces indexed by bridges name
+
+#-------------------------------------------------------------------------------
+# Services modules variables
+#-------------------------------------------------------------------------------
+declare -A serviceName
+declare -A serviceType
+declare -A serviceConfig
+declare -A serviceOption
+
 #-------------------------------------------------------------------------------
 # Consoles modules variables
 #-------------------------------------------------------------------------------
@@ -420,9 +429,10 @@ createLink () {
    fi
    # WARNING : first check $srch type
    if $(yaneHostExists "$srch") ; then
-       logMessage LOG "host $srch OK"
+      logMessage LOG "host $srch OK"
    else
-       logMessage ERR "$srch name ${hostName["$srch"]} unknown"
+      logMessage ERR "$srch name ${hostName["$srch"]} unknown"
+      exit
    fi
 
    if $(yaneDeviceCanHostInterface "$srch" "$srci") ; then
@@ -534,6 +544,10 @@ yaneBootNetworkSession () {
    # Creating the hosts
    logMessage DEB "Creating the hosts ..."
    createHosts
+	
+   # Creating services
+   logMessage DEB "Creating services ..."
+   yaneCreateServices
 
    # Populating filesystems if needed
    logMessage DEB "Populating filesystems ..."
@@ -547,7 +561,7 @@ yaneBootNetworkSession () {
    # Booting up the hosts
    logMessage DEB "Booting up the hosts ..."
    bootHosts
-
+	
    # Create the bridges
    yaneCreateBridges
 
@@ -584,7 +598,13 @@ yaneKillNetworkSession () {
 
    # Kill links
    killLinks
+   
+   # Shutdown services
+   yaneShutdownServices
 
+   # Delete services
+   yaneDeleteServices
+   
    # Shutdown hosts
    shutdownHosts
 
@@ -699,7 +719,7 @@ do
 	 else
 	    yaneKillNetworkSession
 	 fi
-#         killNetwork
+         #killNetwork
 	 exitYane
       ;;
       -l ) # List active sessions for this config
