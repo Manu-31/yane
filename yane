@@ -434,7 +434,8 @@ createLink () {
       logMessage ERR "$srch name ${hostName["$srch"]} unknown"
       exit
    fi
-
+   
+   echo $?
    if $(yaneDeviceCanHostInterface "$srch" "$srci") ; then
       logMessage DEB "Source device '$srch' found"
    else
@@ -454,6 +455,7 @@ createLink () {
       logMessage ERR "No destination interface defined in '$l'"
       exit
    fi
+
    if $(yaneDeviceCanHostInterface "$dsth" "$dsti") ; then
       logMessage DEB "Destination device '$dsth' found"
    else

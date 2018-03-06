@@ -1,0 +1,44 @@
+network:
+  name: dnsmasq
+  version: 1.0
+  hosts:
+    -
+      name: m1
+      mode: netns
+    -
+      name: m2
+      mode: netns
+    -
+      name: m3
+      mode: netns
+    -
+      name: m4
+      mode: netns
+    -
+      name: r1
+      mode: docker
+      image: default
+
+  links:
+    - m1:eth0:10.0.0.1/24!r1:eth0:10.0.0.254/24
+    - m2:eth0:10.0.1.1/24!r1:eth1:10.0.1.254/24
+    - m3:eth0:10.0.2.1/24!r1:eth2:10.0.2.254/24
+    - m4:eth0:10.0.3.1/24!r1:eth3:10.0.3.254/24
+
+  services:
+    -
+      name: dhcpserver
+      type: dnsmasq
+      config: dnsmasq.conf
+      option: -v -t
+  
+  bridges:
+    -
+      name: yane0
+      interfaces: m1:eth1!m2:eth1!m3:eth1!m4:eth1!r1:eth4!dhcpserver:v0:192.168.1.1/24
+
+  consoles:
+    - all
+
+  dumpif:
+    - all
