@@ -89,6 +89,15 @@ buildNetworkFromFile_yaml () {
       fi
    done
 
+   #Build the services lists 
+   for idx in ${!network_services__name[@]}
+   do
+	serviceName[${network_services__name[$idx]}]=${network_services__name[$idx]}
+	serviceType[${network_services__name[$idx]}]=${network_services__type[$idx]}
+	serviceConfig[${network_services__name[$idx]}]=${network_services__config[$idx]}
+	serviceOption[${network_services__name[$idx]}]=${network_services__option[$idx]}
+   done
+
    # Build the console list
    if [ "$network_consoles" == "all" ] ; then
       for idx in ${hostName[@]}
@@ -137,12 +146,4 @@ buildNetworkFromFile_yaml () {
       fi
    done
 
-   #Build the services lists 
-   for idx in ${!network_services__name[@]}
-   do
-		serviceName[${network_services__name[$idx]}]=${network_services__name[$idx]}
-		serviceType[${network_services__name[$idx]}]=${network_services__type[$idx]}
-		serviceConfig[${network_services__name[$idx]}]=${network_services__config[$idx]}
-		serviceOption[${network_services__name[$idx]}]=${network_services__option[$idx]}
-	done
 }

@@ -60,7 +60,7 @@ yaneBridgeExists() {
 #    $4 : namespace in which $2 is defined
 #-------------------------------------------------------------------------------
 yaneAddBridgeInterface() {
-   logMessage LOG "Adding int '$2' from '$4' in bridge '${SESSION_ID}_$1'"
+   logMessage DEB "Adding int '$2' from '$4' in bridge '${SESSION_ID}_$1'"
 
    # Bing it back from its netns
    $IP netns exec $4 $IP link set $2 netns $YANE_DEFAULT_NETNS

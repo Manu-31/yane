@@ -1,15 +1,30 @@
 #!/bin/bash
 #===============================================================================
 # Services
+#  Ce module se charge de la gestion des services (dnsmasq pour le moment)
 #===============================================================================
 
 #-------------------------------------------------------------------------------
+# contantes
+#-------------------------------------------------------------------------------
+servicesVirtMode="docker"   # mode de virtualisation des services
+
+#-------------------------------------------------------------------------------
 # create services
+#  Créer un hote puis y ajoute les fichiers de configuration
 #-------------------------------------------------------------------------------
 yaneCreateServices () {
    for serv in ${serviceName[@]}
    do
-      createService_${serviceType[$serv]} $serv
+      logMessage LOG "Creating a dnsmasq service : $serv using $servicesVirtMode"
+      createHost_$servicesVirtMode $serv ${serviceType[$serv]}
+      hostName[$serv]=$serv
+      hostMode[$serv]=$servicesVirtMode
+      hostImage[$serv]=${serviceType[$serv]}
+      # Load config files 
+      src=$(echo "${serviceConfig[$serv]}" | cut -d! -f 1)
+      dest=$(echo "${serviceConfig[$serv]}" | cut -d! -f 2)
+      yaneHostPopulateFS_$servicesVirtMode $serv $src $dest
    done
 }
 
@@ -19,7 +34,7 @@ yaneCreateServices () {
 yaneShutdownServices () {
    for serv in ${serviceName[@]}
    do
-      shutdownService_${serviceType[$serv]} $serv
+      shutdownHost_$servicesVirtMode $serv
    done
 }
 
@@ -29,6 +44,19 @@ yaneShutdownServices () {
 yaneDeleteServices () {
    for serv in ${serviceName[@]}
    do
-      deleteService_${serviceType[$serv]} $serv
+      deleteHost_$servicesVirtMode $serv
+   done
+   $IP link del yane$SESSION_ID
+}
+
+yaneConnectServices () {
+   for serv in ${serviceName[@]}
+   do
+      $IP link add yane$SESSION_ID type veth peer name yane0
+      $IP link set yane0 netns ${SESSION_ID}_$serv
+      $IP link set yane$SESSION_ID up
+      $IP netns exec ${SESSION_ID}_$serv ip link set yane0 up
+      $IP netns exec ${SESSION_ID}_$serv ip addr add 10.0.254.254/24 dev yane0
+      $IP addr add 10.0.254.1/24 dev yane${SESSION_ID}
    done
 }

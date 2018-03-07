@@ -429,13 +429,11 @@ createLink () {
    fi
    # WARNING : first check $srch type
    if $(yaneHostExists "$srch") ; then
-      logMessage LOG "host $srch OK"
+      logMessage DEB "host $srch OK"
    else
       logMessage ERR "$srch name ${hostName["$srch"]} unknown"
       exit
    fi
-   
-   echo $?
    if $(yaneDeviceCanHostInterface "$srch" "$srci") ; then
       logMessage DEB "Source device '$srch' found"
    else
@@ -464,7 +462,7 @@ createLink () {
    fi
    IFLIST="$IFLIST $dsth:$dsti"
    dsta=`echo $dst|cut -d: -f3`
-   logMessage LOG "  . $srch ($srci)  <-> $dsth ($dsti)"
+   logMessage LOG "  $srch ($srci)  >--< $dsth ($dsti)"
    if [ -n ""$srca ] ; then
       logMessage LOG "    $srch : $srca"
    fi
@@ -563,7 +561,8 @@ yaneBootNetworkSession () {
    # Booting up the hosts
    logMessage DEB "Booting up the hosts ..."
    bootHosts
-	
+   yaneConnectServices
+
    # Create the bridges
    yaneCreateBridges
 

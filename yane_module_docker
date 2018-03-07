@@ -12,10 +12,14 @@ DEFAULT_IMAGE="alpine:latest"
 #-------------------------------------------------------------------------------
 createHost_docker () {
   if [ "$2" == "default" ]; then
-    logMessage LOG "Creating docker container ${SESSION_ID}_$1 from $DEFAULT_IMAGE"
+    logMessage LOG "Creating docker" 
+    logMessage LOG "  name : ${SESSION_ID}_$1" 
+    logMessage LOG "  image : $DEFAULT_IMAGE"
     $DOCKER create -it --name ${SESSION_ID}_$1 --hostname $1 --network none --privileged $DEFAULT_IMAGE > /dev/null
   else #Warning should verify that $2 is a valid image
-    logMessage LOG "Creating docker container ${SESSION_ID}_$1 from $2"
+    logMessage LOG "Creating docker" 
+    logMessage LOG "  name : ${SESSION_ID}_$1" 
+    logMessage LOG "  image : $2"
     $DOCKER create -it --name ${SESSION_ID}_$1 --hostname $1 --network none --privileged $2 > /dev/null
   fi
 }
@@ -70,7 +74,7 @@ yaneConsoleCmd_docker () {
 #    $4 : namespace in which $2 is defined
 #-------------------------------------------------------------------------------
 yaneAddHostInterface_docker () {
-   logMessage LOG "Adding int '$2' from '$4' in docker container $1"
+   logMessage DEB "Adding int '$2' from '$4' in docker container $1"
 
    $IP netns exec $4 $IP link set $2 netns ${SESSION_ID}_$1
    if [ -n "$3" ] ; then
