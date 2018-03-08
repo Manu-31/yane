@@ -482,7 +482,10 @@ createLink () {
 
    # Interfaces creation
    $IP netns exec yane-src-$$ $IP link add $srci type veth peer name $dsti netns yane-dst-$$
-
+   if [ $? -ne 0 ]; then 
+      logMessage ERR "Can't create interface $srci or $dsti"
+      exit 1
+   fi
    # Search for source host
    if [[ ${hostMode["$srch"]} ]] ; then
        logMessage DEB "source host found"

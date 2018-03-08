@@ -45,34 +45,52 @@ yaneDeleteServices () {
    for serv in ${serviceName[@]}
    do
       deleteHost_$servicesVirtMode $serv
+      $IP link del $SESSION_ID${serviceType[$serv]}
    done
-   $IP link del yane$SESSION_ID
+   $IP link set yane0 down 
+   $IP link del yane0
 }
 
 yaneConnectServices () {
+   br_name="yane0"
    netmask="24"
    ip_addr_service="192.168.1.1"
    ip_addr_gateway="192.168.1.254"
+   ip_addr_yanenet=""
    for serv in ${serviceName[@]}
    do
-      $IP link add yane$SESSION_ID type veth peer name yane0
-      $IP link set yane0 netns ${SESSION_ID}_$serv
-      $IP link set yane$SESSION_ID up
-      $IP netns exec ${SESSION_ID}_$serv ip link set yane0 up
-      $IP netns exec ${SESSION_ID}_$serv ip addr add ${ip_addr_service}/$netmask dev yane0
+      idx=$(echo "${bridgeInterfaces[@]}" | grep -b -o $serv)
+      if [ $? -eq 0 ]; then
+         ip_addr_yanenet=$(echo ${bridgeInterfaces[@]} | cut -c $(echo $idx | cut -d: -f 1)- | cut -d! -f 2 | cut -d: -f 3)
+         if [ -z "$ip_addr_yanenet" ]; then
+            logMessage ERR "Warning : you need to give an IP address to your service"
+            exit 1
+         fi
+      else
+         logMessage ERR "The service : $serv must be linked to hosts with a bridge"
+         exit 1
+      fi
+      $IP link add $br_name type bridge
+      $IP link set $br_name up
+      $IP link add $SESSION_ID${serviceType[$serv]} type veth peer name int0
+      $IP link set int0 netns ${SESSION_ID}_$serv
+      $IP link set $SESSION_ID${serviceType[$serv]} up
+      $IP netns exec ${SESSION_ID}_$serv ip link set int0 up
+      $IP netns exec ${SESSION_ID}_$serv ip addr add ${ip_addr_service}/$netmask dev int0
       $IP netns exec ${SESSION_ID}_$serv ip route add default via $ip_addr_gateway
-      $IP addr add ${ip_addr_gateway}/$netmask dev yane${SESSION_ID}
+      $IP addr add ${ip_addr_gateway}/$netmask dev $br_name
+      $IP link set $SESSION_ID${serviceType[$serv]} master $br_name
       iptables -P FORWARD DROP
       iptables -F FORWARD
       iptables -t nat -F
       iptables -t nat -A POSTROUTING -s ${ip_addr_service}/$netmask -o enp0s25 -j MASQUERADE
-      iptables -A FORWARD -i enp0s25 -o yane$SESSION_ID -j ACCEPT
-      iptables -A FORWARD -o enp0s25 -i yane$SESSION_ID -j ACCEPT
+      iptables -A FORWARD -i enp0s25 -o $br_name -j ACCEPT
+      iptables -A FORWARD -o enp0s25 -i $br_name -j ACCEPT
       $IP netns exec ${SESSION_ID}_$serv iptables -P FORWARD DROP 
       $IP netns exec ${SESSION_ID}_$serv iptables -F FORWARD 
       $IP netns exec ${SESSION_ID}_$serv iptables -t nat -F
-      $IP netns exec ${SESSION_ID}_$serv iptables -t nat -A POSTROUTING -s 192.168.5.0/$netmask -o yane0 -j MASQUERADE
-      $IP netns exec ${SESSION_ID}_$serv iptables -A FORWARD -i yane0 -o v0 -j ACCEPT
-      $IP netns exec ${SESSION_ID}_$serv iptables -A FORWARD -o yane0 -i v0 -j ACCEPT
+      $IP netns exec ${SESSION_ID}_$serv iptables -t nat -A POSTROUTING -s $ip_addr_yanenet -o int0 -j MASQUERADE
+      $IP netns exec ${SESSION_ID}_$serv iptables -A FORWARD -i int0 -o v0 -j ACCEPT
+      $IP netns exec ${SESSION_ID}_$serv iptables -A FORWARD -o int0 -i v0 -j ACCEPT
    done
 }
