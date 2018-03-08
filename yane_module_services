@@ -50,13 +50,29 @@ yaneDeleteServices () {
 }
 
 yaneConnectServices () {
+   netmask="24"
+   ip_addr_service="192.168.1.1"
+   ip_addr_gateway="192.168.1.254"
    for serv in ${serviceName[@]}
    do
       $IP link add yane$SESSION_ID type veth peer name yane0
       $IP link set yane0 netns ${SESSION_ID}_$serv
       $IP link set yane$SESSION_ID up
       $IP netns exec ${SESSION_ID}_$serv ip link set yane0 up
-      $IP netns exec ${SESSION_ID}_$serv ip addr add 10.0.254.254/24 dev yane0
-      $IP addr add 10.0.254.1/24 dev yane${SESSION_ID}
+      $IP netns exec ${SESSION_ID}_$serv ip addr add ${ip_addr_service}/$netmask dev yane0
+      $IP netns exec ${SESSION_ID}_$serv ip route add default via $ip_addr_gateway
+      $IP addr add ${ip_addr_gateway}/$netmask dev yane${SESSION_ID}
+      iptables -P FORWARD DROP
+      iptables -F FORWARD
+      iptables -t nat -F
+      iptables -t nat -A POSTROUTING -s ${ip_addr_service}/$netmask -o enp0s25 -j MASQUERADE
+      iptables -A FORWARD -i enp0s25 -o yane$SESSION_ID -j ACCEPT
+      iptables -A FORWARD -o enp0s25 -i yane$SESSION_ID -j ACCEPT
+      $IP netns exec ${SESSION_ID}_$serv iptables -P FORWARD DROP 
+      $IP netns exec ${SESSION_ID}_$serv iptables -F FORWARD 
+      $IP netns exec ${SESSION_ID}_$serv iptables -t nat -F
+      $IP netns exec ${SESSION_ID}_$serv iptables -t nat -A POSTROUTING -s 192.168.5.0/$netmask -o yane0 -j MASQUERADE
+      $IP netns exec ${SESSION_ID}_$serv iptables -A FORWARD -i yane0 -o v0 -j ACCEPT
+      $IP netns exec ${SESSION_ID}_$serv iptables -A FORWARD -o yane0 -i v0 -j ACCEPT
    done
 }
