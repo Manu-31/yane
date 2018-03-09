@@ -482,7 +482,7 @@ createLink () {
 
    # Interfaces creation
    $IP netns exec yane-src-$$ $IP link add $srci type veth peer name $dsti netns yane-dst-$$
-   if [ $? -ne 0 ]; then 
+   if [ $? -ne 0 ]; then
       logMessage ERR "Can't create interface $srci or $dsti"
       exit 1
    fi
@@ -547,7 +547,7 @@ yaneBootNetworkSession () {
    # Creating the hosts
    logMessage DEB "Creating the hosts ..."
    createHosts
-	
+
    # Creating services
    logMessage DEB "Creating services ..."
    yaneCreateServices
@@ -602,13 +602,13 @@ yaneKillNetworkSession () {
 
    # Kill links
    killLinks
-   
+
    # Shutdown services
    yaneShutdownServices
 
    # Delete services
    yaneDeleteServices
-   
+
    # Shutdown hosts
    shutdownHosts
 
@@ -668,6 +668,11 @@ Modules
 ${modules[@]}
 EOF
 }
+
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit 1
+fi
 
 yaneLoadModules
 #-------------------------------------------------------------------------------
