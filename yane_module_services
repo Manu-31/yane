@@ -80,10 +80,6 @@ yaneConnectServices () {
       interfaceService=$(echo "${bridgeInterfaces[@]}" | grep -b -o $serv)
       if [ $? -eq 0 ]; then   # Vérifier si une interface de bridge entre le service et le réseau yane existe
          ip_addr_yanenet=$(echo ${bridgeInterfaces[@]} | cut -c $(echo $interfaceService | cut -d: -f 1)- | cut -d! -f 2 | cut -d: -f 3)
-         if [ -z "$ip_addr_yanenet" ]; then
-            logMessage ERR "Warning : you need to give an IP address to your service"
-            exit 1
-         fi
       else
          logMessage ERR "The service : $serv must be linked to hosts with a bridge"
          exit 1

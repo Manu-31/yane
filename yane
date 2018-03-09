@@ -509,7 +509,7 @@ createLink () {
 # Kill a p2p link
 #-------------------------------------------------------------------------------
 killLink () {
-   logMessage ERR "killLink not yet implemented"
+   logMessage DEB "killLink not yet implemented"
 }
 
 #-------------------------------------------------------------------------------
