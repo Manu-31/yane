@@ -1,5 +1,5 @@
 # Les services
-
+Un exemple d'utilisation de services peut être observé [ici](../examples/dnsmasq-1).
 Dans yane les services permettent de fournir internet, dns, dhcp, aux différentes machines.
 Dans sa version actuelle yane ne fourni qu'un seul type de service : `dnsmasq`. Celui-ci est cependant capable de fournir dns et dhcp à votre réseau yane.
 Pour ajouter un service à votre réseau vous devez spécifier dans votre fichier `yane.yml` plusieurs paramètres (tous obligatoire) :
