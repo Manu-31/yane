@@ -30,11 +30,10 @@ network:
       name: dhcpserver
       type: dnsmasq
       config: ./dnsmasq.conf!/etc/dnsmasq.conf
-      option: -v -t
-  
+
   bridges:
     -
-      name: yane0
+      name: br-int
       interfaces: m1:eth1!m2:eth1!m3:eth1!m4:eth1!r1:eth4!dhcpserver:v0:192.168.5.1/24
 
   consoles:

@@ -1,0 +1,96 @@
+#!/bin/bash
+#===============================================================================
+# Services
+#  Ce module se charge de la gestion des services (dnsmasq pour le moment)
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# contantes
+#-------------------------------------------------------------------------------
+servicesVirtMode="docker"   # mode de virtualisation des services
+
+#-------------------------------------------------------------------------------
+# create services
+#  Créer un hote puis y ajoute les fichiers de configuration
+#   $1 : service name
+#-------------------------------------------------------------------------------
+yaneCreateService_dnsmasq () {
+    if (( NBDNSMASQ > 0 )); then
+      logMessage ERR "you can't have more than 1 dnsmasq"
+      exit 1
+    else
+      export NBDNSMASQ=1
+    fi
+    logMessage LOG "Creating a dnsmasq service : $1 using $servicesVirtMode"
+    createHost_$servicesVirtMode $1 ${serviceType[$1]}
+    hostName[$1]=$1
+    hostMode[$1]=$servicesVirtMode
+    hostImage[$1]=${serviceType[$1]}
+    # Load config files
+    src=$(echo "${serviceConfig[$1]}" | cut -d! -f 1)
+    dest=$(echo "${serviceConfig[$1]}" | cut -d! -f 2)
+    yaneHostPopulateFS_$servicesVirtMode $1 $src $dest
+}
+
+#-------------------------------------------------------------------------------
+# shutdown services
+#   $1 : service name
+#-------------------------------------------------------------------------------
+yaneShutdownService_dnsmasq () {
+   shutdownHost_$servicesVirtMode $1
+}
+
+#-------------------------------------------------------------------------------
+# delete services
+#   $1 : service name
+#-------------------------------------------------------------------------------
+yaneDeleteService_dnsmasq () {
+   deleteHost_$servicesVirtMode $1
+   $IP link del $SESSION_ID${serviceType[$1]}
+}
+
+#-------------------------------------------------------------------------------
+# connect dnsmasq server to "internet"
+#   $1 : service name
+#   $2 : bridge name
+#   $3 : bridge ip
+#   $4 : bridge netmask
+#   $5 : default interface of host machine
+#   $6 : ip addresse du serveur
+#-------------------------------------------------------------------------------
+yaneConnectService_dnsmasq () {
+   #----------------------------------------------------------------------------
+   # Constantes
+   #----------------------------------------------------------------------------
+   br_name=$2  # nom du bridge où tous les services sont relié
+   ip_addr_bridge=$3 # addresse ip du bridge
+   netmask=$4 # netmask du réseau entre le service et le bridge
+   default_if=$5 # interface de la machine avec route par défaut
+   ip_addr_service="$6" # addresse ip du serveur dnsmasq
+   ip_addr_yanenet="" # adresse ip (CIDR) du réseau reliant le serveur dnsmasq et le réseau simulé
+
+   interfaceService=$(echo "${bridgeInterfaces[@]}" | grep -b -o $1)
+   if [ $? -eq 0 ]; then   # Vérifier si une interface de bridge entre le service et le réseau yane existe
+      ip_addr_yanenet=$(echo ${bridgeInterfaces[@]} | cut -c $(echo $interfaceService | cut -d: -f 1)- | cut -d! -f 2 | cut -d: -f 3)
+   else
+      logMessage ERR "The service : $1 must be linked to hosts with a bridge"
+      # exiting safely ?
+      exit 1
+   fi
+   
+   # Mise en place des interfaces entre le services et la machine
+   $IP link add $SESSION_ID${serviceType[$1]} type veth peer name int0
+   $IP link set int0 netns ${SESSION_ID}_$1
+   $IP link set $SESSION_ID${serviceType[$1]} up
+   $IP netns exec ${SESSION_ID}_$1 ip link set int0 up
+   $IP netns exec ${SESSION_ID}_$1 ip addr add ${ip_addr_service}/$netmask dev int0
+   $IP netns exec ${SESSION_ID}_$1 ip route add default via $ip_addr_bridge
+   $IP link set $SESSION_ID${serviceType[$1]} master $br_name
+   # Mise à jour du NAT du service
+   $IP netns exec ${SESSION_ID}_$1 iptables -P FORWARD DROP
+   $IP netns exec ${SESSION_ID}_$1 iptables -F FORWARD
+   $IP netns exec ${SESSION_ID}_$1 iptables -t nat -F
+   $IP netns exec ${SESSION_ID}_$1 iptables -t nat -A POSTROUTING -s $ip_addr_yanenet -o int0 -j MASQUERADE
+   $IP netns exec ${SESSION_ID}_$1 iptables -A FORWARD -i int0 -o v0 -j ACCEPT
+   $IP netns exec ${SESSION_ID}_$1 iptables -A FORWARD -o int0 -i v0 -j ACCEPT
+}
