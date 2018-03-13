@@ -564,7 +564,7 @@ yaneBootNetworkSession () {
    # Booting up the hosts
    logMessage DEB "Booting up the hosts ..."
    bootHosts
-   yaneConnectServices
+   yaneRunServices
 
    # Create the bridges
    yaneCreateBridges
