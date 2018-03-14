@@ -1,20 +1,20 @@
 Bases de Docker
 ===============
 
-Yane permet d'utiliser plusieurs technologies de virtualisation. L'une des plus connue est Docker. Docker permet d'emuler différents systèmes sur n'importe quel OS. Pour pouvoir émuler un réseau Docker vous devez d'abord [l'installer](http://docs.docker.com/engine/installation/). Nous utiliserons ici la version communautaire de Docker.
+Yane permet d'utiliser plusieurs technologies de virtualisation. L'une des plus connues est Docker. Docker permet d'émuler différents systèmes sur n'importe quel OS. Pour pouvoir émuler un réseau Docker vous devez d'abord [l'installer](http://docs.docker.com/engine/installation/). Nous utiliserons ici la version communautaire de Docker.
 
 Si vous souhaitez plus d'informations sur l'utilisation de Docker :
 * [documentation](http://docs.docker.com/)
 * [débuter](http://training.play-with-docker.com/)
 * [forums](https://forums.docker.com/)
-* Un man de docker existe !
+* Un (bref) man de docker existe !
 
 1 - Lancer un container docker
 ----------------------------
 
-L'équivalent des hosts dans yane seront des containers dans Docker. L'avantage de docker par rapport aux namespaces est de pouvoir avoir accès a une multitude d'images de container différentes (ubuntu, debian, ...) mais aussi de pouvoir y lancez toutes sortes d'applications (bases de données, serveur web, etc...) grâce au [dockerhub](http://hub.docker.com). On pourra ainsi générer du traffic varié sur notre réseau.
+L'équivalent des hosts dans yane seront des containers dans Docker. L'avantage de docker par rapport aux namespaces est de pouvoir avoir accès à une multitude d'images de container différentes (ubuntu, debian, ...) mais aussi de pouvoir y lancer toutes sortes d'applications (bases de données, serveur web, etc...) grâce au [dockerhub](http://hub.docker.com).
 
-La première chose à faire est de lancer un container simple avec des outils indispensable en réseau (ifconfig/ip-tools, route, traceroute, ping, etc...). Pour notre premier hôte on va utiliser une image [alpine](http://alpinelinux.org/) (c'est une distribution linux). Lançons donc un container de alpine et faisons en sorte qu'il ne s'arrête pas.
+La première chose à faire est de lancer un container simple avec des outils indispensable en réseau (ifconfig/net-tools, ip-route2, traceroute, ping, etc...). Pour notre premier hôte on va utiliser une image [alpine](http://alpinelinux.org/) (c'est une distribution Linux). Lançons donc un container de alpine et faisons en sorte qu'il ne s'arrête pas.
 
 		$ docker run -itd --name=host-a alpine       
 		a96b2cfb571b9a467b96cc5d7ce752f63fc5fd44d48bee867a7f57cbc99aca64                                                                                                    
@@ -31,11 +31,13 @@ On peut donc lancer un ifconfig pour voir la configuration réseau de ce contain
 
 		$ docker exec host-a ping 8.8.8.8
 
-Ou bien consulter vos interfaces ainsi que les routes crées par Docker :
+**Remarque :** Par défaut docker donne un accès à internet ! Ce n'est pas le cas dans yane ! (voir les services et notamment le service dnsmasq)
+
+Ou bien consulter vos interfaces ainsi que les routes créées par Docker :
 
 		$ docker exec host-a ip route ; ip a
 
-Si vous créez d'autres containers ils seront placés dans le même réseau par défaut. En effet docker a mis en place un réseau tout seul où tous vos container sont reliés entre-eux par un bridge.
+Si vous créez d'autres containers ils seront placés dans le même réseau par défaut. En effet docker a mis en place, par défaut, un réseau où tous vos containers sont reliés entre-eux par un bridge. Par défaut ce bridge est `docker0`. Vous pouvez le consulter avec `brctl show docker0`.
 
 Vous pouvez arrêter un container grâce à la commande : `$ docker container kill host-a`
 Vous pouvez le relancer avec : `$ docker container restart host-a`
@@ -43,7 +45,7 @@ Vous pouvez le relancer avec : `$ docker container restart host-a`
 2 - Créer un réseau avec Docker
 -----------------------------
 
-Notre objectif est d'émuler des réseaux. Nous sommes capable de mettre en place un seul réseau avec plusieurs machines dedans. Mais il serais plus interessant de pouvoir émuler plusieurs réseaux.
+Dans cette partie notre objectif sera d'émuler des réseaux. Nous sommes capable de mettre en place un seul réseau. Cependant nous ne pouvons pas spécifier sa topologie. Il serait plus intéressant de pouvoir émuler plusieurs sous-réseaux et de les interconnecter.
 
 Pour cela Docker possède une fonctionnalité parfaite : `$ docker network` :
 * Vous pouvez visualiser les réseaux docker déjà présent grâce à : `$ docker network ls`.
@@ -56,7 +58,7 @@ Pour cela Docker possède une fonctionnalité parfaite : `$ docker network` :
 3 - Et maintenant ?
 -------------------
 
-Avec yane nous utilisons docker de manière différente que jusqu'ici. Pour une meilleur idée de notre utilisation de docker avec yane je vous invite à aller voir le fichier : ExempleDockerNamespace.md.
+Avec yane nous utilisons docker d'une autre manière qu'ici. Pour une meilleur idée de notre utilisation de docker avec yane je vous invite à aller voir le fichier : ExempleDockerNamespace.md.
 Vous pourrez découvrir comment yane interconnecte un docker avec un namespace.
 
 Vous pouvez également aller voir le fichier ExempleDocker1.md pour un exemple d'un réseau plus complexe avec docker (docker uniquement).

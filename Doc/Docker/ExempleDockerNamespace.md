@@ -6,7 +6,7 @@ Dans cet exemple nous allons relier deux machines par un lien virtuel :
 * Une machine Docker
 * Une machine Namespace
 
-Dans cet exemple la difficulté est que l'on utilise 2 technologies différentes (docker et namespace). Docker cache beaucoup de chose à l'utilisateur. Il n'est pas pensé pour communiquer avec autre chose que des dockers. Nous allons donc devoir créer le lien entre les deux machines manuellement car docker ne nous fourni pas les outils pour le faire (ce qui est parfaitement normal).
+Dans cet exemple la difficulté est que l'on utilise 2 technologies différentes (docker et namespace). Docker cache beaucoup de chose à l'utilisateur. Il n'est pas pensé pouvoir communiquer avec autre chose que des dockers. Nous allons donc devoir créer le lien entre les deux machines manuellement car docker ne nous fourni pas les outils pour le faire (ce qui est parfaitement normal).
 
 1 - Créer les deux machines :
 -----------------------------
@@ -110,7 +110,7 @@ Si on observe nos interfaces :
 		30: veth1@if31: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
 		    link/ether e6:3e:93:53:65:91 brd ff:ff:ff:ff:ff:ff link-netnsid 0
 
-L'interface veth0 a disparue de l'hôte. On peut vérifier que le namespace stationA l'a bien reçu : 
+L'interface veth0 a disparue de l'hôte. On peut vérifier que le namespace stationA l'a bien reçu :
 
 		# ip netns exec stationA ip link show
 		1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
@@ -126,7 +126,7 @@ Pour la stationB c'est plus hardu car il faut retrouver le namespace, de type ne
 
 __Rappel :__ Les namespaces d'un processus se trouve en `/proc/<PID>/ns/`.
 
-La commande `ip` ne peut que manipuler les namespaces qu'elle a créé ou plus précisément : que les namespaces se trouvant dans le répertoire `/var/run/netns/`. Comme le namespace de docker ne se trouve pas dans celui-ci on va y créer un lien pointant vers le namespace de notre docker : 
+La commande `ip` ne peut que manipuler les namespaces qu'elle a créé ou plus précisément : que les namespaces se trouvant dans le répertoire `/var/run/netns/`. Comme le namespace de docker ne se trouve pas dans celui-ci on va y créer un lien pointant vers le namespace de notre docker :
 
 		# ln -s /proc/1234/ns/net /var/run/netns/stationB
 

@@ -26,9 +26,9 @@ Son rôle est donc d'ouvrir un terminal (xterm, gnome-terminal, konsole, termina
 
 **Important :**  Le module [yane_module_console](../yane_module_console) ne doit pas être modifié car c'est lui qui appellera ces 2 fonctions.
 
-Dans le cas de terminaux plus complexe comme tmux ou terminator qui permettent l'ouverture de plusieurs terminaux en une seule fenêtre vous devrez probablement complexifier votre fonction. En effet vous devrez non seulement ouvrir un nouveau terminal mais aussi l'ouvrir au bon endroit. Le module [yane_module_consoles_tmux](yane_module_consoles_tmux) en est un exemple. Si vous avez besoin de définir des variables global vous devrez alors les déclarer dans le fichier [yane](../yane).
+Dans le cas de terminaux plus complexe comme tmux ou terminator qui permettent l'ouverture de plusieurs terminaux en une seule fenêtre vous devrez probablement complexifier votre fonction. En effet vous devrez non seulement ouvrir un nouveau terminal mais aussi l'ouvrir au bon endroit. Le module [yane_module_consoles_tmux](yane_module_consoles_tmux) en est un exemple. Si vous avez besoin de définir des variables globales vous devrez alors les déclarer dans le fichier [yane](../yane).
 
-Comme l'organisation des terminaux/consoles est définie dans le fichier `yane.yml` (voir [ici](ManuelUtilisateurTerminaux.md)) vous devrez modifier sa syntaxe si voulez ajouter des fonctionnalités. Pour cela le module [yane_module_yaml](../yane_module_yaml) devra être modifier.
+Comme l'organisation des terminaux/consoles est définie dans le fichier `yane.yml` (voir [ici](ManuelUtilisateurTerminaux.md)) vous devrez modifier sa syntaxe si voulez ajouter des fonctionnalités. Pour cela le module [yane_module_yaml](../yane_module_yaml) devra être modifié.
 
 * yaneKillConsoles_modeName
 

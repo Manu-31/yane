@@ -708,70 +708,70 @@ do
       DEBUG=True
 	  ;;
     -f )
-	 shift
-         NET_CONFIG_FILE="$1"
-      ;;
-      -k )
-         buildNetworkFromFile_yaml $NET_CONFIG_FILE
- 	 if [ -z "${SESSION_ID}" ] ; then
-            nbActiveSessions=`$WC -l  ${NET_CONFIG_FILE}.sessions | cut -d" " -f 1`
+	  shift
+      NET_CONFIG_FILE="$1"
+    ;;
+    -k )
+      buildNetworkFromFile_yaml $NET_CONFIG_FILE
+ 	    if [ -z "${SESSION_ID}" ] ; then
+        nbActiveSessions=`$WC -l  ${NET_CONFIG_FILE}.sessions | cut -d" " -f 1`
 	    if [ $nbActiveSessions == 1 ] ; then
-		SESSION_ID=`$CAT ${NET_CONFIG_FILE}.sessions`
+		    SESSION_ID=`$CAT ${NET_CONFIG_FILE}.sessions`
 	    else
-               echo "$nbActiveSessions active sessions, please select (option -s)"
-	       listActiveSessions
-	       exitYane
+        echo "$nbActiveSessions active sessions, please select (option -s)"
+	      listActiveSessions
+	      exitYane
 	    fi
-         fi
-	 if [ -z ""`$GREP $SESSION_ID ${NET_CONFIG_FILE}.sessions`  ] ; then
-	    echo "Unknown session $SESSION_ID"
-	 else
-	    yaneKillNetworkSession
-	 fi
-         #killNetwork
-	 exitYane
-      ;;
-      -l ) # List active sessions for this config
-	  listActiveSessions
-	  exit
-      ;;
-      -n )
-         PRETEND=TRUE
-         VERBOSE=TRUE
-	 echo "Pretending, won't do anything"
-      ;;
-      -p )
-         buildNetworkFromFile_yaml $NET_CONFIG_FILE
-         yaneDisplayNetwork
-         exitYane
-      ;;
-      -s )
-	 shift
-         SESSION_ID="$1"
-      ;;
+      fi
+	    if [ -z ""`$GREP $SESSION_ID ${NET_CONFIG_FILE}.sessions`  ] ; then
+	      echo "Unknown session $SESSION_ID"
+	    else
+	      yaneKillNetworkSession
+	    fi
+      #killNetwork
+	    exitYane
+    ;;
+    -l ) # List active sessions for this config
+	    listActiveSessions
+	    exit
+    ;;
+    -n )
+      PRETEND=TRUE
+      VERBOSE=TRUE
+	    echo "Pretending, won't do anything"
+    ;;
+    -p )
+      buildNetworkFromFile_yaml $NET_CONFIG_FILE
+      yaneDisplayNetwork
+      exitYane
+    ;;
+    -s )
+	  shift
+      SESSION_ID="$1"
+    ;;
 
-      -t ) # Debuging purpose. Do not use
-         buildNetworkFromFile_yaml $NET_CONFIG_FILE
-	 if [ -z "${SESSION_ID}" ] ; then
-	     SESSION_ID=$$
-         fi
-         yaneBootNetworkSession
-         exit
-      ;;
-      -v )
-         VERBOSE=True
-      ;;
-      -h )
-         showHelp
-	 exit
-      ;;
-      * )
-	  echo Unknown option $1
-    showHelp
-    exit
-      ;;
-   esac
-   shift
+    -t ) # Debuging purpose. Do not use
+      buildNetworkFromFile_yaml $NET_CONFIG_FILE
+	    if [ -z "${SESSION_ID}" ] ; then
+	      SESSION_ID=$$
+      fi
+      yaneBootNetworkSession
+      exit
+    ;;
+    -v )
+      VERBOSE=True
+    ;;
+    -h )
+      showHelp
+	    exit
+    ;;
+    * )
+	    echo Unknown option $1
+      showHelp
+      exit
+    ;;
+    esac
+    shift
 done
 
 

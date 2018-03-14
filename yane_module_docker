@@ -12,13 +12,13 @@ DEFAULT_IMAGE="alpine:latest"
 #-------------------------------------------------------------------------------
 createHost_docker () {
   if [ "$2" == "default" ]; then
-    logMessage LOG "Creating docker" 
-    logMessage LOG "  name : ${SESSION_ID}_$1" 
+    logMessage LOG "Creating docker"
+    logMessage LOG "  name : ${SESSION_ID}_$1"
     logMessage LOG "  image : $DEFAULT_IMAGE"
     $DOCKER create -it --name ${SESSION_ID}_$1 --hostname $1 --network none --privileged $DEFAULT_IMAGE > /dev/null
   else #Warning should verify that $2 is a valid image
-    logMessage LOG "Creating docker" 
-    logMessage LOG "  name : ${SESSION_ID}_$1" 
+    logMessage LOG "Creating docker"
+    logMessage LOG "  name : ${SESSION_ID}_$1"
     logMessage LOG "  image : $2"
     $DOCKER create -it --name ${SESSION_ID}_$1 --hostname $1 --network none --privileged $2 > /dev/null
   fi
@@ -32,7 +32,7 @@ bootHost_docker () {
    logMessage LOG "Booting docker container ${SESSION_ID}_$1"
 
    $DOCKER start ${SESSION_ID}_$1 > /dev/null # boot du container
-   # Rendre le container manipulable par iproute2
+   # Lignes suivantes extremement importantes voir Doc/ExempleDockerNamespace.md
    CONTAINER_PID=$($DOCKER inspect --format='{{.State.Pid}}' ${SESSION_ID}_$1)
    $LN -s /proc/$CONTAINER_PID/ns/net /var/run/netns/${SESSION_ID}_$1
 }

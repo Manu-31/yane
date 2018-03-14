@@ -13,7 +13,7 @@ Vous pouvez récupérez le fichier yane.yml dans examples/tuto-1/yane.yml
 
 ## Créer le réseau
 
-Pour spécifier notre réseau à yane, on utilise YAML. Créons le fichier yane.yml dans lequel on entre les lignes suivantes :
+Pour spécifier notre réseau à yane, nous utilisons YAML. Créons le fichier yane.yml dans lequel nous saisissons les lignes suivantes :
 
 ```yaml
 network:
@@ -28,12 +28,11 @@ network:
       mode: netns
 ```
 
-Expliquons un peu ! Tout d'abord le réseau doit avoir un nom et une version. Ensuite on défini nos hôtes par un nom et un mode dans la balise hosts, vous pouvez spécifier autant d'hôte que vous le voulez. Le `mode` fait référence à la technique de virtualisation utilisée pour cet hôte. Ici on a pris `netns`, mon on aurait très bien pu prendre `docker`, etc...
+Expliquons un peu ! Tout d'abord le réseau doit avoir un nom et une version. Ensuite nous définissons nos hôtes par un `name` et un `mode` grâce à la balise `hosts`. Vous pouvez spécifier autant d'hôtes que vous le voulez. Le `mode` fait référence à la technique de virtualisation utilisée pour cet hôte. Ici nous avons pris `netns`, mais nous aurions très bien pu prendre `docker`.
 
-**Attention**: le YAML n'utilise aucune tabulation pour son indentation.
+**Attention**: le YAML n'utilise aucune tabulation pour son indentation, veillez à utiliser des espaces.
 
 ## Créer des liens
-
 
 Un lien est spécifié par de la façon suivante :`if1!if2`. Cela signifie qu'un lien relie deux interfaces (`ifx`). Les interfaces sont de la forme : `h:i[:a]`. *h* correspond au nom du premier hôte, *i* au nom de l'interface de cet hôte. Enfin on peut ajouter à chaque interface une adresse IPv4 `a`.
 On peut alors ajouter à notre fichier les deux lignes suivantes :
@@ -56,11 +55,11 @@ Si l'on souhaite seulement certaines consoles il suffit de les spécifier de la 
 consoles:
   - host-A host-B
 ```
-Enfin on peut lancez la simulation :
+Enfin on peut lancer la simulation :
 
 `# yane`
 
-Si on préfère on peut utiliser le mode _verbose_ qui ajoute plus de description :
+Si on préfère on peut utiliser le mode _verbose_ qui affiche plus de description (yane affiche les messages LOG):
 
 `# yane -v`
 
@@ -70,7 +69,7 @@ Basculez sur la console de `host-a`. Nous allons essayer d'écouter notre interf
 
 	# tcpdump
 
-Sur la console de `host-b`. Essayer d'envoyer des données à `host-a`, on peut par exemple faire un ping :
+Sur la console de `host-b`. Essayez d'envoyer des données à `host-a`, on peut, par exemple, faire un ping :
 
 	# ping -c 1 192.168.1.1
 
@@ -80,14 +79,14 @@ Si tout s'est déroulé comme prévu vous devriez obtenir sur `host-a` :
 	17:19:23.300887 IP r2d2 > 192.168.1.1: ICMP echo reply, id 8751, seq 1, length 64
 
 
-Maintenant vous ce vous désirez c'est de pouvoir gardez traces de tous les échanges protocolaires qui se sont déroulé entre nos hôtes.
+Maintenant vous ce vous désirez, c'est de pouvoir garder traces de tous les échanges protocolaires qui se sont déroulé entre nos hôtes.
 Pour cela _yane_ peut "sniffer" chaque interfaces.
-Pour sniffer toutes les interfaces de notre réseau :
+Pour "sniffer" toutes les interfaces de notre réseau :
 ```yaml
 dumpif:
   - all
 ```
-Si vous relancer la simulation vous allez voir cette ligne apparaître :
+Si vous relancez la simulation vous allez voir cette ligne apparaître :
 
 ```
 wireshark -i /tmp/nssi/16977/host-a/v0 -i /tmp/nssi/16977/host-b/v0 `
