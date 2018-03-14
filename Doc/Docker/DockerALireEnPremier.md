@@ -1,5 +1,4 @@
-Bases de Docker
-===============
+# Bases de Docker
 
 Yane permet d'utiliser plusieurs technologies de virtualisation. L'une des plus connues est Docker. Docker permet de virtualiser facilement différents systèmes d'exploitation. L'avantage et la différence de docker par rapport aux namespaces est de pouvoir virtualiser l'hôte et ainsi de séparer l'intégralité du système de fichier.
 
@@ -34,7 +33,7 @@ On peut donc lancer un ifconfig pour voir la configuration réseau de ce contain
 
 		$ docker exec host-a ping 8.8.8.8
 
-**Remarque :** Par défaut docker donne un accès à internet ! Ce n'est pas le cas dans yane ! (voir les [services](../../yane_module_services) et notamment le service [dnsmasq](../../yane_module_dnsmasq)).
+**Remarque :** Par défaut docker donne un accès à internet ! Ce n'est pas le cas dans yane ! (voir les [services](https://github.com/SylvainDaste/yane/blob/3b04fb0e0acfb342116c4768b31e2a3e9975646b/yane_module_services) et notamment le service [dnsmasq](https://github.com/SylvainDaste/yane/blob/3b04fb0e0acfb342116c4768b31e2a3e9975646b/yane_module_dnsmasq)).
 
 Ou bien consulter vos interfaces ainsi que les routes créées par Docker :
 
