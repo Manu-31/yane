@@ -77,15 +77,14 @@ declare -A bridgeName   	# Array of interfaces indexed by bridges name
 declare -A bridgeInterfaces     # Array of interfaces indexed by bridges name
 
 #-------------------------------------------------------------------------------
-# Services modules variables
+# Variables of the module Services
 #-------------------------------------------------------------------------------
-declare -A serviceName
-declare -A serviceType
-declare -A serviceConfig
-declare -A serviceOption
+declare -A serviceName          # Array of service names indexed by service names 
+declare -A serviceType          # Array of service types indexed by service names
+declare -A serviceConfig        # Array of service config files indexed by service names
 
 #-------------------------------------------------------------------------------
-# Consoles modules variables
+# Variables of the module Consoles
 #-------------------------------------------------------------------------------
 declare -A idpane               # TMUX_MODULE : array of indexes of last opened tmux pane indexed by tmux-sessions
 declare -A idwin                # TMUX_MODULE : array of indexes of last opened tmux window indexed by tmux-sessions
