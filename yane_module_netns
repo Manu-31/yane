@@ -65,7 +65,7 @@ yaneConsoleCmd_netns() {
 #    $4 : netns in which $2 is defined
 #-------------------------------------------------------------------------------
 yaneAddHostInterface_netns() {
-   logMessage LOG "Adding int '$2' from '$4' in netns ${SESSION_ID}_$1"
+   logMessage DEB "Adding int '$2' from '$4' in netns ${SESSION_ID}_$1"
 
    $IP netns exec $4 $IP link set $2 netns ${SESSION_ID}_$1
    if [ -n "$3" ] ; then

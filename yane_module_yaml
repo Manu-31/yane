@@ -67,7 +67,7 @@ buildNetworkFromFile_yaml () {
    # Parse the config file
    eval $(parse_yaml $1) 2> /dev/null
 
-   # Verify that the number of images correspond to the number of dockers
+   # Vérifie que le nombre d'images définies dans yane.yml est valide
    isNbDockersValid
 
    # Build the host lists
@@ -81,12 +81,21 @@ buildNetworkFromFile_yaml () {
 
       # Create docker images list `hostDockerImage`
       # `none` images is use for no docker hosts
-      if [ "${network_hosts__mode[$idx]}" != "docker" ]; then
-        hostDockerImage["${network_hosts__name[$idx]}"]="none"
+      # because images are ONLY USED for docker
+      if [ "${network_hosts__mode[$idx]}" != "docker" ]; then 	# Si l'hôte n'est pas un docker
+        hostDockerImage["${network_hosts__name[$idx]}"]="none" 	# Alors il n'a pas d'image
       else
-        hostDockerImage["${network_hosts__name[$idx]}"]=${network_hosts__image[$id_img]}
+        hostDockerImage["${network_hosts__name[$idx]}"]=${network_hosts__image[$id_img]} # Sinon on récupère son image
         (( id_img++ ))
       fi
+   done
+
+   #Build the services lists
+   for idx in ${!network_services__name[@]}
+   do
+     serviceName[${network_services__name[$idx]}]=${network_services__name[$idx]}
+	   serviceType[${network_services__name[$idx]}]=${network_services__type[$idx]}
+	   serviceConfig[${network_services__name[$idx]}]=${network_services__config[$idx]}
    done
 
    # Build the console list
@@ -136,4 +145,5 @@ buildNetworkFromFile_yaml () {
           logMessage ERR "Cannot snoop on unknown host '$hn' ..."
       fi
    done
+
 }

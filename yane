@@ -75,8 +75,16 @@ declare -A dumpIf               # Array of interface to snoop
 declare -A modules              # Array o loaded modules
 declare -A bridgeName   	# Array of interfaces indexed by bridges name
 declare -A bridgeInterfaces     # Array of interfaces indexed by bridges name
+
 #-------------------------------------------------------------------------------
-# Consoles modules variables
+# Variables of the module Services
+#-------------------------------------------------------------------------------
+declare -A serviceName          # Array of service names indexed by service names 
+declare -A serviceType          # Array of service types indexed by service names
+declare -A serviceConfig        # Array of service config files indexed by service names
+
+#-------------------------------------------------------------------------------
+# Variables of the module Consoles
 #-------------------------------------------------------------------------------
 declare -A idpane               # TMUX_MODULE : array of indexes of last opened tmux pane indexed by tmux-sessions
 declare -A idwin                # TMUX_MODULE : array of indexes of last opened tmux window indexed by tmux-sessions
@@ -420,11 +428,11 @@ createLink () {
    fi
    # WARNING : first check $srch type
    if $(yaneHostExists "$srch") ; then
-       logMessage LOG "host $srch OK"
+      logMessage DEB "host $srch OK"
    else
-       logMessage ERR "$srch name ${hostName["$srch"]} unknown"
+      logMessage ERR "$srch name ${hostName["$srch"]} unknown"
+      exit
    fi
-
    if $(yaneDeviceCanHostInterface "$srch" "$srci") ; then
       logMessage DEB "Source device '$srch' found"
    else
@@ -444,6 +452,7 @@ createLink () {
       logMessage ERR "No destination interface defined in '$l'"
       exit
    fi
+
    if $(yaneDeviceCanHostInterface "$dsth" "$dsti") ; then
       logMessage DEB "Destination device '$dsth' found"
    else
@@ -452,7 +461,7 @@ createLink () {
    fi
    IFLIST="$IFLIST $dsth:$dsti"
    dsta=`echo $dst|cut -d: -f3`
-   logMessage LOG "  . $srch ($srci)  <-> $dsth ($dsti)"
+   logMessage LOG "  $srch ($srci)  >--< $dsth ($dsti)"
    if [ -n ""$srca ] ; then
       logMessage LOG "    $srch : $srca"
    fi
@@ -472,7 +481,10 @@ createLink () {
 
    # Interfaces creation
    $IP netns exec yane-src-$$ $IP link add $srci type veth peer name $dsti netns yane-dst-$$
-
+   if [ $? -ne 0 ]; then
+      logMessage ERR "Can't create interface $srci or $dsti"
+      exit 1
+   fi
    # Search for source host
    if [[ ${hostMode["$srch"]} ]] ; then
        logMessage DEB "source host found"
@@ -496,7 +508,7 @@ createLink () {
 # Kill a p2p link
 #-------------------------------------------------------------------------------
 killLink () {
-   logMessage ERR "killLink not yet implemented"
+   logMessage DEB "killLink not yet implemented"
 }
 
 #-------------------------------------------------------------------------------
@@ -535,6 +547,10 @@ yaneBootNetworkSession () {
    logMessage DEB "Creating the hosts ..."
    createHosts
 
+   # Creating services
+   logMessage DEB "Creating services ..."
+   yaneCreateServices
+
    # Populating filesystems if needed
    logMessage DEB "Populating filesystems ..."
    yanePopulateFileSystems
@@ -547,6 +563,7 @@ yaneBootNetworkSession () {
    # Booting up the hosts
    logMessage DEB "Booting up the hosts ..."
    bootHosts
+   yaneRunServices
 
    # Create the bridges
    yaneCreateBridges
@@ -584,6 +601,12 @@ yaneKillNetworkSession () {
 
    # Kill links
    killLinks
+
+   # Shutdown services
+   yaneShutdownServices
+
+   # Delete services
+   yaneDeleteServices
 
    # Shutdown hosts
    shutdownHosts
@@ -645,6 +668,11 @@ ${modules[@]}
 EOF
 }
 
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit 1
+fi
+
 yaneLoadModules
 #-------------------------------------------------------------------------------
 # Parse command line options
@@ -679,70 +707,70 @@ do
       DEBUG=True
 	  ;;
     -f )
-	 shift
-         NET_CONFIG_FILE="$1"
-      ;;
-      -k )
-         buildNetworkFromFile_yaml $NET_CONFIG_FILE
- 	 if [ -z "${SESSION_ID}" ] ; then
-            nbActiveSessions=`$WC -l  ${NET_CONFIG_FILE}.sessions | cut -d" " -f 1`
+	  shift
+      NET_CONFIG_FILE="$1"
+    ;;
+    -k )
+      buildNetworkFromFile_yaml $NET_CONFIG_FILE
+ 	    if [ -z "${SESSION_ID}" ] ; then
+        nbActiveSessions=`$WC -l  ${NET_CONFIG_FILE}.sessions | cut -d" " -f 1`
 	    if [ $nbActiveSessions == 1 ] ; then
-		SESSION_ID=`$CAT ${NET_CONFIG_FILE}.sessions`
+		    SESSION_ID=`$CAT ${NET_CONFIG_FILE}.sessions`
 	    else
-               echo "$nbActiveSessions active sessions, please select (option -s)"
-	       listActiveSessions
-	       exitYane
+        echo "$nbActiveSessions active sessions, please select (option -s)"
+	      listActiveSessions
+	      exitYane
 	    fi
-         fi
-	 if [ -z ""`$GREP $SESSION_ID ${NET_CONFIG_FILE}.sessions`  ] ; then
-	    echo "Unknown session $SESSION_ID"
-	 else
-	    yaneKillNetworkSession
-	 fi
-#         killNetwork
-	 exitYane
-      ;;
-      -l ) # List active sessions for this config
-	  listActiveSessions
-	  exit
-      ;;
-      -n )
-         PRETEND=TRUE
-         VERBOSE=TRUE
-	 echo "Pretending, won't do anything"
-      ;;
-      -p )
-         buildNetworkFromFile_yaml $NET_CONFIG_FILE
-         yaneDisplayNetwork
-         exitYane
-      ;;
-      -s )
-	 shift
-         SESSION_ID="$1"
-      ;;
+      fi
+	    if [ -z ""`$GREP $SESSION_ID ${NET_CONFIG_FILE}.sessions`  ] ; then
+	      echo "Unknown session $SESSION_ID"
+	    else
+	      yaneKillNetworkSession
+	    fi
+      #killNetwork
+	    exitYane
+    ;;
+    -l ) # List active sessions for this config
+	    listActiveSessions
+	    exit
+    ;;
+    -n )
+      PRETEND=TRUE
+      VERBOSE=TRUE
+	    echo "Pretending, won't do anything"
+    ;;
+    -p )
+      buildNetworkFromFile_yaml $NET_CONFIG_FILE
+      yaneDisplayNetwork
+      exitYane
+    ;;
+    -s )
+	  shift
+      SESSION_ID="$1"
+    ;;
 
-      -t ) # Debuging purpose. Do not use
-         buildNetworkFromFile_yaml $NET_CONFIG_FILE
-	 if [ -z "${SESSION_ID}" ] ; then
-	     SESSION_ID=$$
-         fi
-         yaneBootNetworkSession
-         exit
-      ;;
-      -v )
-         VERBOSE=True
-      ;;
-      -h )
-         showHelp
-	 exit
-      ;;
-      * )
-	  echo Unknown option $1
-    showHelp
-    exit
-      ;;
-   esac
-   shift
+    -t ) # Debuging purpose. Do not use
+      buildNetworkFromFile_yaml $NET_CONFIG_FILE
+	    if [ -z "${SESSION_ID}" ] ; then
+	      SESSION_ID=$$
+      fi
+      yaneBootNetworkSession
+      exit
+    ;;
+    -v )
+      VERBOSE=True
+    ;;
+    -h )
+      showHelp
+	    exit
+    ;;
+    * )
+	    echo Unknown option $1
+      showHelp
+      exit
+    ;;
+    esac
+    shift
 done
 
 
