@@ -1,6 +1,3 @@
-# Première utilisation de yane
-
-
 Dans ce tutoriel nous allons émuler le réseau suivant :
 
 host-A	=============	host-B
@@ -30,7 +27,7 @@ network:
 
 Expliquons un peu ! Tout d'abord le réseau doit avoir un nom et une version. Ensuite nous définissons nos hôtes par un `name` et un `mode` grâce à la balise `hosts`. Vous pouvez spécifier autant d'hôtes que vous le voulez. Le `mode` fait référence à la technique de virtualisation utilisée pour cet hôte. Ici nous avons pris `netns`, mais nous aurions très bien pu prendre `docker`.
 
-**Attention**: le YAML n'utilise aucune tabulation pour son indentation, veillez à utiliser des espaces.
+**Attention**: le YAML n'utilise aucunes tabulations pour l'indentation, veillez à utiliser des espaces.
 
 ## Créer des liens
 
@@ -66,20 +63,20 @@ Si on préfère on peut utiliser le mode _verbose_ qui affiche plus de descripti
 ## Tester notre simulation
 
 Basculez sur la console de `host-a`. Nous allons essayer d'écouter notre interface :
-
-	# tcpdump
-
+```
+# tcpdump
+```
 Sur la console de `host-b`. Essayez d'envoyer des données à `host-a`, on peut, par exemple, faire un ping :
-
+```
 	# ping -c 1 192.168.1.1
-
+```
 Si tout s'est déroulé comme prévu vous devriez obtenir sur `host-a` :
 
 	17:19:23.300866 IP 192.168.1.1 > r2d2: ICMP echo request, id 8751, seq 1, length 64
 	17:19:23.300887 IP r2d2 > 192.168.1.1: ICMP echo reply, id 8751, seq 1, length 64
 
 
-Maintenant vous ce vous désirez, c'est de pouvoir garder traces de tous les échanges protocolaires qui se sont déroulé entre nos hôtes.
+Maintenant nous aimerions pouvoir garder traces de tous les échanges protocolaires qui se sont déroulés entre nos hôtes.
 Pour cela _yane_ peut "sniffer" chaque interfaces.
 Pour "sniffer" toutes les interfaces de notre réseau :
 ```yaml

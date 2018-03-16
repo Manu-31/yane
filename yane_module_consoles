@@ -28,6 +28,7 @@ yaneOpenConsoleWindows () {
    logMessage LOG "Opening consoles"
    for idx in ${!console_mode[@]}
    do
+       # Appelle la fonction du sous module ${console_mode[$idx]} (tmux ou xterm)
        yaneOpenConsoleWindow_${console_mode[$idx]} $idx
    done
 }
