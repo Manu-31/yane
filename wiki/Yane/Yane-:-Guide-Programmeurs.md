@@ -208,3 +208,8 @@ Imaginons que vous vouliez développer un nouveau module de service destiné à 
 
 Pour illustrer la structure des services dans yane rien de mieux qu'un schéma :
 ![Les services dans yane.](services.png)
+
+### Pourquoi un service ne peut pas avoir de console au démarrage de yane ?
+
+Les consoles sont construites à partir de la variable `console_mode`. Celle-ci est construite dans le module yaml qui n'y ajoute pas les services.
+Cette fonctionnalité est pourtant réalisable. Il faudrait adapter le module yaml... Dans une autre version !
