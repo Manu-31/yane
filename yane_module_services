@@ -40,6 +40,10 @@ yaneDeleteServices () {
 #-------------------------------------------------------------------------------
 yaneRunServices () {
   logMessage LOG "Connecting services ..."
+  if [ -z "$serv" ] ; then
+      logMessage LOG "No service to connect !"
+      return
+  fi
   br_name="yane0"
   ip_addr_bridge="192.168.1.254"
   service_ID=1
