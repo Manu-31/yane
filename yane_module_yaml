@@ -79,13 +79,13 @@ buildNetworkFromFile_yaml () {
       hostMode["${network_hosts__name[$idx]}"]=${network_hosts__mode[$idx]}
       hostFiles["${network_hosts__name[$idx]}"]=${network_hosts__files[$idx]}
 
-      # Create docker images list `hostDockerImage`
+      # Create docker images list `hostImage`
       # `none` images is use for no docker hosts
       # because images are ONLY USED for docker
       if [ "${network_hosts__mode[$idx]}" != "docker" ]; then 	# Si l'hôte n'est pas un docker
-        hostDockerImage["${network_hosts__name[$idx]}"]="none" 	# Alors il n'a pas d'image
+        hostImage["${network_hosts__name[$idx]}"]="none" 	# Alors il n'a pas d'image
       else
-        hostDockerImage["${network_hosts__name[$idx]}"]=${network_hosts__image[$id_img]} # Sinon on récupère son image
+        hostImage["${network_hosts__name[$idx]}"]=${network_hosts__image[$id_img]} # Sinon on récupère son image
         (( id_img++ ))
       fi
    done

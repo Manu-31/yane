@@ -1,0 +1,42 @@
+network:
+  name: rip-docker
+  version: 0.1
+  hosts:
+    -
+      name: host-a
+      mode: namespace
+    -
+      name: host-b
+      mode: namespace
+
+    -
+      name: r1
+      mode: docker
+      image: quagga:latest
+
+    -
+      name: r2
+      mode: docker
+      image: quagga:latest
+
+  links :
+    - r1:v0:192.168.1.1/24!r2:v0:192.168.1.2/24
+    - r1:v1:192.168.2.1/24!host-a:v0:192.168.2.2/24
+    - r2:v1:192.168.3.2/24!host-b:v0:192.168.3.1/24
+
+  consoles:
+    -
+      host: r1
+      mode: tmux
+    -
+      host: r2
+      mode: tmux
+    -
+      host: host-a
+      mode: xterm
+    -
+      host: host-b
+      mode: xterm
+
+  dumpif:
+    - all

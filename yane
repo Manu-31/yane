@@ -8,10 +8,11 @@
 #            current (or any) session : remove netns, ...)
 #    0.2.2 : - added filesystem population
 #    0.2.2 : - clearly separate network creation and startup
+#    0.3   : - introduce Docker
+#
 #
 #  TBD
-#    0.2.3 : - reorganize option parsing
-#    0.3   : - another virt tool
+#    ???   : - reorganize option parsing
 #            - remove WARNINGs (namespace specific parts)
 #    ???   : - Doc
 #            - install procedure
@@ -21,7 +22,8 @@
 #YANE_VERSION="0.1.1"   # Minor bug correction
 #YANE_VERSION="0.2"     # Introducing bridges
 #YANE_VERSION="0.2.1"   # First session management
-YANE_VERSION="0.2.2"    # First file system management
+#YANE_VERSION="0.2.2"   # First file system management
+YANE_VERSION="0.3"      # Docker and lots of help from SD
 
 #-------------------------------------------------------------------------------
 # Main commands (do not trust $PATH)
@@ -66,7 +68,7 @@ declare -A hostNum              # Array of host numbers : 0 1, ...
 declare -A hostName             # Array of host names
 declare -A hostMode             # Array of host mode
 declare -A hostFiles            # Array of host FS
-declare -A hostDockerImage      # Array of host image
+declare -A hostImage            # Array of host image
 declare -A console_mode         # Array of consoles mode indexed by host name
 declare -A console_session_tmux # Array of tmux sessions indexed by host name
 declare -A p2pLinks             # Array of p2p links
@@ -342,7 +344,7 @@ createHosts () {
     do
       ht=${hostMode[$hn]}
       logMessage DEB "Creating host '${SESSION_ID}_$hn' (type $ht)"
-      createHost_${hostMode[$hn]} $hn ${hostDockerImage[$hn]}
+      createHost_${hostMode[$hn]} $hn ${hostImage[$hn]}
    done
 }
 
