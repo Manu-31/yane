@@ -2,36 +2,25 @@ network:
   name: rip-1
   version: 0.1
   hosts:
+    - r1
+      mode : docker
+    - r2
+      mode : netns
+    - r3
+      mode : netns
+    - r4
+      mode : netns
+    - r5
+      mode : netns
     -
-      name: r1
-      mode: netns
-      files: r1/etc:/
-    -
-      name: r2
-      mode: netns
-      files: r2/etc:/
-    -
-      name: r3
-      mode: netns
-      files: r3/etc:/
-    -
-      name: r4
-      mode: netns
-      files: r4/etc:/
-    -
-      name: r5
-      files: r5/etc:/
-      mode: netns
-    -
-      name: a
-      mode: netns
-    -
-      name: b
-      mode: netns
-    -
-      name: c
-      mode: netns
-
+      name: jean pierre
+    - a
+      mode : netns
+    - b
+      mode : netns
+    - c
+      mode : netns
+      files : ici
 
   links:
     - r1:fe1:17.0.12.1/24!r2:fe0:17.0.12.2/24

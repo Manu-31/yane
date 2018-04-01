@@ -1,0 +1,18 @@
+yane :
+  verbose: True
+
+hosts :
+  default :
+    -
+      mode: netns
+
+netns :
+  default:
+    -
+      files: %n/etc:/
+    
+docker :
+  default:
+    -
+      image: "alpine:latest"
+      files: docker/%n:/

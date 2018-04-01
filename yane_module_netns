@@ -92,7 +92,9 @@ yaneHostExists_netns() {
 #    $3 : destination basedir in the guest (must be absolute)
 #-------------------------------------------------------------------------------
 yaneHostPopulateFS_netns() {
-    logMessage LOG "Copying $2 to $3 in ${SESSION_ID}_$1"
-    $MKDIR -p /etc/netns/${SESSION_ID}_$1 >/dev/null 2>&1 || $TRUE
-    $CP -a $2/* /etc/netns/${SESSION_ID}_$1 >/dev/null 2>&1 || $TRUE
+    if [ -n "$2" -a -e "$2" ] ; then
+	logMessage LOG "Copying $2 to $3 in ${SESSION_ID}_$1"
+	$MKDIR -p /etc/netns/${SESSION_ID}_$1 >/dev/null 2>&1 || $TRUE
+	$CP -a $2/* /etc/netns/${SESSION_ID}_$1 >/dev/null 2>&1 || $TRUE
+    fi
 }

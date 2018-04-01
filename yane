@@ -61,6 +61,10 @@ NET_CONFIG_FILE=yane.yml
 TMP_CFG_FILE=./yane.$$
 YANE_DEFAULT_NETNS=yans-$$
 
+# Configuration
+YANE_DEFAULT_CONFIG_PARSER=yaml
+YANE_DEFAULT_CONFIG_FILE=${YANE_ROOT_DIR}/yane-config.yml
+
 #-------------------------------------------------------------------------------
 # Some variables
 #-------------------------------------------------------------------------------
@@ -212,10 +216,8 @@ yanePopulateFileSystems () {
    do
        fsSpec=${hostFiles["$hn"]}
        if [ -n "$fsSpec" ] ; then
-          echo Populating FS for $hn
           src=`echo $fsSpec|cut -d: -f1`
           dst=`echo $fsSpec|cut -d: -f2`
-          echo Copying files from $src to $dst
 	  yaneHostPopulateFS_${hostMode["$hn"]} ${SESSION_ID}_$hn $src $dst
        fi
    done
@@ -225,6 +227,19 @@ yanePopulateFileSystems () {
 # Loading modules
 #-------------------------------------------------------------------------------
 yaneLoadModules() {
+   # Fisrt, we need a parser to read a config file
+   if [ -f ${YANE_ROOT_DIR}/yane_module_${YANE_DEFAULT_CONFIG_PARSER} ] ; then
+      . ${YANE_ROOT_DIR}/yane_module_${YANE_DEFAULT_CONFIG_PARSER}
+   else
+      logMessage ERR "Unable to find a parser for '${YANE_DEFAULT_CONFIG_PARSER}'"
+   fi
+   # Now, we load a config file
+   if [ -f $YANE_DEFAULT_CONFIG_FILE ] ; then
+       buildNetworkFromFile_${YANE_DEFAULT_CONFIG_PARSER} $YANE_DEFAULT_CONFIG_FILE 
+   else
+      logMessage ERR "Unable to find '${YANE_DEFAULT_CONFIG_FILE}'"
+   fi
+
    mods=`$LS $YANE_ROOT_DIR/yane_module_*|$GREP -v \~`
 
    for mod in $mods
@@ -344,7 +359,7 @@ createHosts () {
     do
       ht=${hostMode[$hn]}
       logMessage DEB "Creating host '${SESSION_ID}_$hn' (type $ht)"
-      createHost_${hostMode[$hn]} $hn ${hostImage[$hn]}
+      createHost_${hostMode[$hn]} "$hn" "${hostImage[$hn]}"
    done
 }
 
@@ -752,11 +767,15 @@ do
     ;;
 
     -t ) # Debuging purpose. Do not use
-      buildNetworkFromFile_yaml $NET_CONFIG_FILE
+	parse_yaml_1 $YANE_DEFAULT_CONFIG_FILE
+	parse_yaml_1 $NET_CONFIG_FILE
+	exit
+
+	buildNetworkFromFile_yaml $NET_CONFIG_FILE
 	    if [ -z "${SESSION_ID}" ] ; then
 	      SESSION_ID=$$
       fi
-      yaneBootNetworkSession
+
       exit
     ;;
     -v )

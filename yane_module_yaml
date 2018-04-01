@@ -30,6 +30,39 @@ parse_yaml() {
     }' | sed 's/_=/+=/g'
 }
 
+parse_yaml_1() {
+    local prefix=$2
+    local s
+    local w
+    local fs
+    s='[[:space:]]*'
+    w='[a-zA-Z0-9_]*'
+    fs="$(echo @|tr @ '\034')"
+    sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
+	-e "s|^\($s\)\($w\)$s[:-]$s\(.*\)$s\$|\1$fs\2$fs\3|p" "$1" |awk -F"$fs" '{
+    depth=length($1)/2;
+    name[depth]=$2
+    if (depth == 1) {
+       nb=0;
+    } else if ((depth == 2)&& (length($2)==0)) {
+       name[2]=nb++;
+    }
+    if ((0 == 0)) {
+	val=$3;
+	if (depth < 2) {
+            vn=""; for (i=0; i<depth; i++) {vn=(vn)(name[i])("_")}
+	    vn=(vn)(name[depth]);
+	}else if (depth == 2){
+	    vn=(name[0])("_")(name[1])("[")(name[2])("]");
+	    if (length($3) ==0){val=name[2];}
+	}else{
+	    vn=(name[0])("_")(name[1])("_")(name[3])("[")(name[2])("]")
+	}
+        if (length(val) >0) {printf("%s=\"%s\"\n", vn, val);}
+    }
+  }'
+}
+
 function parse_yaml_2 {
     local prefix=$2
     local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
@@ -64,30 +97,80 @@ function parse_yaml_2 {
 #
 #-------------------------------------------------------------------------------
 buildNetworkFromFile_yaml () {
+   logMessage LOG "Parsing file $1"
+    
    # Parse the config file
-   eval $(parse_yaml $1) 2> /dev/null
+   eval $(parse_yaml_1 $1) 2> /dev/null
 
-   # Vérifie que le nombre d'images définies dans yane.yml est valide
-   isNbDockersValid
+   # First, yane configuration
+   VERBOSE=${yane_verbose}
 
+#   for hi in ${!network_hosts[@]}
+#   do
+#         network_hosts__name[$hi]="${network_hosts[$hi]}"
+#   done
+     
    # Build the host lists
-   id_img=0
-   for idx in ${!network_hosts__name[@]}
+#   for idx in ${!network_hosts__name[@]}
+   for idx in ${!network_hosts[@]}
    do
-      hostName["${network_hosts__name[$idx]}"]="${network_hosts__name[$idx]}" # a bit useless, I know
-      hostNum["${network_hosts__name[$idx]}"]=$idx
-      hostMode["${network_hosts__name[$idx]}"]=${network_hosts__mode[$idx]}
-      hostFiles["${network_hosts__name[$idx]}"]=${network_hosts__files[$idx]}
-
-      # Create docker images list `hostImage`
-      # `none` images is use for no docker hosts
-      # because images are ONLY USED for docker
-      if [ "${network_hosts__mode[$idx]}" != "docker" ]; then 	# Si l'hôte n'est pas un docker
-        hostImage["${network_hosts__name[$idx]}"]="none" 	# Alors il n'a pas d'image
+      # Set the name
+#      HNAME="${network_hosts__name[$idx]}"
+      if [ -n "${network_hosts_name[$idx]}" ] ; then
+         HNAME="${network_hosts_name[$idx]}"
       else
-        hostImage["${network_hosts__name[$idx]}"]=${network_hosts__image[$id_img]} # Sinon on récupère son image
-        (( id_img++ ))
+         HNAME="${network_hosts[$idx]}"
       fi
+      
+      hostName["$HNAME"]=$HNAME   # a bit useless, I know
+      hostNum["$HNAME"]=$idx
+
+      # If the mode is undefined, we fallback to the default one
+#      if [ -n "${network_hosts__mode[$idx]}" -a "${network_hosts__mode[$idx]}" != "default" ] ; then
+      if [ -n "${network_hosts_mode[$idx]}" -a "${network_hosts_mode[$idx]}" != "default" ] ; then
+#        HMODE=${network_hosts__mode[$idx]}
+        HMODE=${network_hosts_mode[$idx]}
+      else
+#        HMODE=${hosts_default__mode}
+        HMODE=${hosts_default_mode}
+      fi
+      hostMode["$HNAME"]=$HMODE
+      
+      # If image is undefined, use the mode's default
+#      if [ -n "${network_hosts__image[$idx]}" -a  "${network_hosts__image[$idx]}" != "default" ] ; then
+#	  HIMAGE="${network_hosts__image[$idx]}"
+#      else
+#	  HIMAGE==$(eval echo "\$${HMODE}_default__image")
+#      fi
+      if [ -n "${network_hosts_image[$idx]}" -a  "${network_hosts_image[$idx]}" != "default" ] ; then
+	  HIMAGE="${network_hosts_image[$idx]}"
+      else
+	  HIMAGE=$(eval echo "\$${HMODE}_default_image")
+      fi
+      
+      hostImage["$HNAME"]=$HIMAGE
+      
+      # If files is undefined, we use the files parameter of host mode
+#      if [ -n "${network_hosts__files[$idx]}" ] ; then
+#	  HFILES=${network_hosts__files[$idx]}
+      if [ -n "${network_hosts_files[$idx]}" ] ; then
+	  HFILES=${network_hosts_files[$idx]}
+      else
+#          MFILES=$(eval echo "\$${HMODE}_default__files")
+          MFILES=$(eval echo "\$${HMODE}_default_files")
+	  if [ -n "$MFILES" ] ; then
+	      HFILES="$MFILES"
+	  fi
+      fi
+      # Substituting name in files
+      if  [ -n "$HFILES" ] ; then
+	  HFILES=${HFILES//"%n"/${HNAME}}
+#	  hostFiles["${network_hosts__name[$idx]}"]=$HFILES
+	  hostFiles["$HNAME"]=$HFILES
+      fi
+
+      logMessage LOG "Host '$HNAME' mode '$HMODE' image '$HIMAGE'"
+      logMessage LOG "  Files '$HFILES'"
    done
 
    #Build the services lists
@@ -127,12 +210,20 @@ buildNetworkFromFile_yaml () {
    done
 
    # Build the bridges related lists
-   for idx in ${!network_bridges__name[@]}
+#   for idx in ${!network_bridges__name[@]}
+   for idx in ${!network_bridges[@]}
    do
-      br=${network_bridges__name[idx]}
-      bridgeName[$br]="${network_bridges__name[$idx]}"
-      bridgeInterfaces[$br]="${network_bridges__interfaces[$idx]}"
-      logMessage DEB "$idx -> $br  ${bridgeInterfaces[$br]}"
+#      br=${network_bridges__name[idx]}
+      if [ -n "${network_bridges_name[$idx]}" ] ; then
+         BNAME="${network_bridges_name[$idx]}"
+      else
+         BNAME="${network_bridges[$idx]}"
+      fi
+#      bridgeName[$br]="${network_bridges__name[$idx]}"
+      bridgeName[$BNAME]="$BNAME"
+#      bridgeInterfaces[$br]="${network_bridges__interfaces[$idx]}"
+      bridgeInterfaces[$BNAME]="${network_bridges_interfaces[$idx]}"
+      logMessage DEB "$idx -> $BNAME  ${bridgeInterfaces[$BNAME]}"
    done
 
    # Build the dumpif list

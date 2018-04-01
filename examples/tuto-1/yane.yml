@@ -2,11 +2,9 @@ network:
   name: basic
   version: 1.1
   hosts:
-    -
-      name: host-a
+    - host-a
       mode: netns
-    -
-      name: host-b
+    - host-b
       mode: netns
 
   links:
