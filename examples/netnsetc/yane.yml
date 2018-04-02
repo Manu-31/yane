@@ -1,21 +1,18 @@
+#------------------------------------------------------------
+#   This example shows how to copy some files into the
+# filesystems of the virtual hosts.
+#   If you run it, you will have two hosts with two different
+#/etc/hostname and /etc/hosts
+#------------------------------------------------------------
 network :
   name: netnsetc
   version: 1.1
   hosts:
-    -
-      name: rt-a
-      mode: netns
-      files: rt-a/etc:/
-    -
-      name: rt-b
-      mode: netns
-      files: rt-b/etc:/
+    - rt-a
+    - rt-b
 
   links :
     - rt-a:v0:192.168.10.1/24!rt-b:v0:192.168.10.2/24
 
   consoles :
-    - all
-
-  dumpif :
     - all

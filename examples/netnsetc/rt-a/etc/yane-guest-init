@@ -1,0 +1,2 @@
+#/bin/bash
+echo "Coucou je suis '$1'" >> /tmp/log-yane

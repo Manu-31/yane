@@ -9,7 +9,8 @@
 #    0.2.2 : - added filesystem population
 #    0.2.2 : - clearly separate network creation and startup
 #    0.3   : - introduce Docker
-#
+#    0.4   : - Improved configuration
+#            - update some example files
 #
 #  TBD
 #    ???   : - reorganize option parsing
@@ -23,7 +24,8 @@
 #YANE_VERSION="0.2"     # Introducing bridges
 #YANE_VERSION="0.2.1"   # First session management
 #YANE_VERSION="0.2.2"   # First file system management
-YANE_VERSION="0.3"      # Docker and lots of help from SD
+#YANE_VERSION="0.3"     # Docker and lots of help from SD
+YANE_VERSION="0.4"      # Improved configuration
 
 #-------------------------------------------------------------------------------
 # Main commands (do not trust $PATH)
@@ -34,6 +36,7 @@ CAT=/bin/cat
 CP=/bin/cp
 DOCKER=/usr/bin/docker
 DIRNAME=/usr/bin/dirname
+FIND=/usr/bin/find
 GREP=/bin/grep
 IP=/sbin/ip
 KILL=/bin/kill
@@ -73,6 +76,7 @@ declare -A hostName             # Array of host names
 declare -A hostMode             # Array of host mode
 declare -A hostFiles            # Array of host FS
 declare -A hostImage            # Array of host image
+declare -A hostInit             # Array of init command
 declare -A console_mode         # Array of consoles mode indexed by host name
 declare -A console_session_tmux # Array of tmux sessions indexed by host name
 declare -A p2pLinks             # Array of p2p links
@@ -118,18 +122,18 @@ logMessage () {
    case "$1" in
       ERR )
          shift
-         echo "$(date +%T) [ERROR] $*"
+         echo "$(date +%T) [ERROR] (Session ${SESSION_ID}) $*"
       ;;
       LOG )
          shift
          if [ "$VERBOSE" == "True" ] ; then
-            echo "$(date +%T) [LOG] $*"
+            echo "$(date +%T) [LOG] (Session ${SESSION_ID}) $*"
          fi
       ;;
       DEB )
          shift
          if [ "$DEBUG" == "True" ] ; then
-            echo "$(date +%T) [DEBUG] $*"
+            echo "$(date +%T) [DEBUG] (Session ${SESSION_ID}) $*"
          fi
       ;;
    esac
@@ -364,6 +368,27 @@ createHosts () {
 }
 
 #-------------------------------------------------------------------------------
+# Run init scripts hosts based on
+#   Global
+#     SESSION_ID
+#     hostNum
+#     hostName
+#     hostMode
+#     hostInit
+#-------------------------------------------------------------------------------
+yaneRunInitScripts () {
+    for hn in ${hostName[@]}
+    do
+	ht=${hostMode[$hn]}
+	sc=${hostInit[$hn]}
+	if [ -n "$sc" ] ; then
+	    logMessage DEB "Running '$sc' in '${SESSION_ID}_$hn' (type $ht)"
+	    yaneRunCmd_${hostMode[$hn]} "$hn" "$sc"
+	fi
+   done
+}
+
+#-------------------------------------------------------------------------------
 # Boot hosts based on
 #   Global
 #     SESSION_ID
@@ -580,6 +605,8 @@ yaneBootNetworkSession () {
    # Booting up the hosts
    logMessage DEB "Booting up the hosts ..."
    bootHosts
+
+   logMessage DEB "Booting up the services ..."
    yaneRunServices
 
    # Create the bridges
@@ -588,6 +615,9 @@ yaneBootNetworkSession () {
    # Setting up the links
    createLinks
 
+   # Run init scripts
+   yaneRunInitScripts
+   
    # Open the consoles
    yaneOpenConsoleWindows
 
@@ -768,13 +798,12 @@ do
 
     -t ) # Debuging purpose. Do not use
 	parse_yaml_1 $YANE_DEFAULT_CONFIG_FILE
-	parse_yaml_1 $NET_CONFIG_FILE
-	exit
-
+	#parse_yaml_1 $NET_CONFIG_FILE
 	buildNetworkFromFile_yaml $NET_CONFIG_FILE
-	    if [ -z "${SESSION_ID}" ] ; then
+	exit
+	if [ -z "${SESSION_ID}" ] ; then
 	      SESSION_ID=$$
-      fi
+	fi
 
       exit
     ;;

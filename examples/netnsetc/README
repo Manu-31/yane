@@ -1,5 +1,0 @@
-   This example shows how to copy some files into the
-filesystems of the virtual hosts.
-
-   If you run it, you will have two hosts with two different
-/etc/hostname and /etc/hosts

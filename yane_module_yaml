@@ -81,6 +81,26 @@ function parse_yaml_2 {
 }
 
 #-------------------------------------------------------------------------------
+# Substitute some expressions in a variable
+#
+# $1 var name
+#
+# SUBSTITUTIONS is a substitution array (eg SUBSTITUTIONS["%h"]="HOST_NAME")
+#
+# variables must have a value
+#-------------------------------------------------------------------------------
+function yaneSubstitute () {
+    if  [ -n "$1" ] ; then
+	eval RESULT=\$$1
+	for s in ${!SUBSTITUTIONS[@]} ; do
+	    eval t=\$${SUBSTITUTIONS[$s]}
+            RESULT=${RESULT//"$s"/"$t"}
+	done
+	eval $1="\"$RESULT\""
+    fi
+}
+
+#-------------------------------------------------------------------------------
 # Read network configuration and build network variables.
 #
 # This function won't run anything. It will build the following variables
@@ -89,6 +109,8 @@ function parse_yaml_2 {
 # hostName     array (name indexed) of host name (a bit useless !)
 # hostMode     array (name indexed) of host mode
 # hostFiles    array (name indexed) of host files
+# hostInit     array (name indexed) of init commands
+#
 # p2plinks     array of point to point links
 # console_mode     array of host name to run console
 #
@@ -97,14 +119,29 @@ function parse_yaml_2 {
 #
 #-------------------------------------------------------------------------------
 buildNetworkFromFile_yaml () {
-   logMessage LOG "Parsing file $1"
+
+    declare -A SUBSTITUTIONS
+    SUBSTITUTIONS["%S"]="YANE_SESSION"
+    SUBSTITUTIONS["%N"]="NETWORK_NAME"
+    SUBSTITUTIONS["%v"]="NETWORK_VERSION"
+    SUBSTITUTIONS["%n"]="HOST_NAME"
+    SUBSTITUTIONS["%m"]="HOST_MODE"
+
+    logMessage LOG "Parsing file $1"
     
    # Parse the config file
    eval $(parse_yaml_1 $1) 2> /dev/null
 
    # First, yane configuration
+   #--------------------------
    VERBOSE=${yane_verbose}
+   DEBUG=${yane_debug}
 
+   # Second, network config
+   #-----------------------
+   NETWORK_NAME="${network_name}"
+   NETWORK_VERSION="${network_version}"
+   
 #   for hi in ${!network_hosts[@]}
 #   do
 #         network_hosts__name[$hi]="${network_hosts[$hi]}"
@@ -115,70 +152,86 @@ buildNetworkFromFile_yaml () {
    for idx in ${!network_hosts[@]}
    do
       # Set the name
-#      HNAME="${network_hosts__name[$idx]}"
+#      HOST_NAME="${network_hosts__name[$idx]}"
       if [ -n "${network_hosts_name[$idx]}" ] ; then
-         HNAME="${network_hosts_name[$idx]}"
+         HOST_NAME="${network_hosts_name[$idx]}"
       else
-         HNAME="${network_hosts[$idx]}"
+         HOST_NAME="${network_hosts[$idx]}"
       fi
       
-      hostName["$HNAME"]=$HNAME   # a bit useless, I know
-      hostNum["$HNAME"]=$idx
+      hostName["$HOST_NAME"]=$HOST_NAME   # a bit useless, I know
+      hostNum["$HOST_NAME"]=$idx
 
       # If the mode is undefined, we fallback to the default one
 #      if [ -n "${network_hosts__mode[$idx]}" -a "${network_hosts__mode[$idx]}" != "default" ] ; then
       if [ -n "${network_hosts_mode[$idx]}" -a "${network_hosts_mode[$idx]}" != "default" ] ; then
-#        HMODE=${network_hosts__mode[$idx]}
-        HMODE=${network_hosts_mode[$idx]}
+#        HOST_MODE=${network_hosts__mode[$idx]}
+        HOST_MODE=${network_hosts_mode[$idx]}
       else
-#        HMODE=${hosts_default__mode}
-        HMODE=${hosts_default_mode}
+#        HOST_MODE=${hosts_default__mode}
+        HOST_MODE=${hosts_default_mode}
       fi
-      hostMode["$HNAME"]=$HMODE
+      hostMode["$HOST_NAME"]=$HOST_MODE
       
       # If image is undefined, use the mode's default
 #      if [ -n "${network_hosts__image[$idx]}" -a  "${network_hosts__image[$idx]}" != "default" ] ; then
-#	  HIMAGE="${network_hosts__image[$idx]}"
+#	  HOST_IMAGE="${network_hosts__image[$idx]}"
 #      else
-#	  HIMAGE==$(eval echo "\$${HMODE}_default__image")
+#	  HOST_IMAGE==$(eval echo "\$${HOST_MODE}_default__image")
 #      fi
       if [ -n "${network_hosts_image[$idx]}" -a  "${network_hosts_image[$idx]}" != "default" ] ; then
-	  HIMAGE="${network_hosts_image[$idx]}"
+	  HOST_IMAGE="${network_hosts_image[$idx]}"
       else
-	  HIMAGE=$(eval echo "\$${HMODE}_default_image")
+	  HOST_IMAGE=$(eval echo "\$${HOST_MODE}_default_image")
       fi
-      
-      hostImage["$HNAME"]=$HIMAGE
+
+      yaneSubstitute "HOST_IMAGE"      
+      hostImage["$HOST_NAME"]=$HOST_IMAGE
       
       # If files is undefined, we use the files parameter of host mode
 #      if [ -n "${network_hosts__files[$idx]}" ] ; then
-#	  HFILES=${network_hosts__files[$idx]}
+#	  HOST_FILES=${network_hosts__files[$idx]}
       if [ -n "${network_hosts_files[$idx]}" ] ; then
-	  HFILES=${network_hosts_files[$idx]}
+	  HOST_FILES=${network_hosts_files[$idx]}
       else
-#          MFILES=$(eval echo "\$${HMODE}_default__files")
-          MFILES=$(eval echo "\$${HMODE}_default_files")
-	  if [ -n "$MFILES" ] ; then
-	      HFILES="$MFILES"
+#          MODE_FILES=$(eval echo "\$${HOST_MODE}_default__files")
+          MODE_FILES=$(eval echo "\$${HOST_MODE}_default_files")
+	  if [ -n "$MODE_FILES" ] ; then
+	      HOST_FILES="$MODE_FILES"
 	  fi
       fi
       # Substituting name in files
-      if  [ -n "$HFILES" ] ; then
-	  HFILES=${HFILES//"%n"/${HNAME}}
-#	  hostFiles["${network_hosts__name[$idx]}"]=$HFILES
-	  hostFiles["$HNAME"]=$HFILES
+      if  [ -n "$HOST_FILES" ] ; then
+	  yaneSubstitute "HOST_FILES"
+	  hostFiles["$HOST_NAME"]=$HOST_FILES
       fi
 
-      logMessage LOG "Host '$HNAME' mode '$HMODE' image '$HIMAGE'"
-      logMessage LOG "  Files '$HFILES'"
+      # If init script is undefined, we use the files parameter of host mode
+      if [ -n "${network_hosts_init[$idx]}" ] ; then
+	  HOST_INIT=${network_hosts_init[$idx]}
+      else
+          MODE_INIT=$(eval echo "\$${HOST_MODE}_default_init")
+	  if [ -n "$MODE_INIT" ] ; then
+	      HOST_INIT="$MODE_INIT"
+	  fi
+      fi
+      # Substituting name in init command
+      if  [ -n "$HOST_INIT" ] ; then
+	  yaneSubstitute "HOST_INIT"
+	  hostInit["$HOST_NAME"]="$HOST_INIT"
+      fi
+      
+      logMessage LOG "Host '$HOST_NAME' mode '$HOST_MODE' image '$HOST_IMAGE'"
+      logMessage LOG " . Files '$HOST_FILES'"
+      logMessage LOG " . Init '$HOST_INIT'"
    done
 
    #Build the services lists
    for idx in ${!network_services__name[@]}
    do
-     serviceName[${network_services__name[$idx]}]=${network_services__name[$idx]}
-	   serviceType[${network_services__name[$idx]}]=${network_services__type[$idx]}
-	   serviceConfig[${network_services__name[$idx]}]=${network_services__config[$idx]}
+       serviceName[${network_services__name[$idx]}]=${network_services__name[$idx]}
+       serviceType[${network_services__name[$idx]}]=${network_services__type[$idx]}
+       serviceConfig[${network_services__name[$idx]}]=${network_services__config[$idx]}
    done
 
    # Build the console list

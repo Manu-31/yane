@@ -53,8 +53,18 @@ yaneConsoleCmd_netns() {
   mkdir -p .yane_rcfiles
   echo "#!$BASH" > .yane_rcfiles/${SESSION_ID}_$1.rc
   echo "PS1=\"\u@$1:[\W]# \"" >> .yane_rcfiles/${SESSION_ID}_$1.rc
-
   echo "$IP netns exec ${SESSION_ID}_$1 $BASH --rcfile .yane_rcfiles/${SESSION_ID}_$1.rc"
+}
+
+#-------------------------------------------------------------------------------
+# run a single command in a running host
+#    $1 : hostname
+#    $2 : command line with args
+#-------------------------------------------------------------------------------
+yaneRunCmd_netns() {
+    logMessage LOG "Running in '$1' the following command :"
+    logMessage LOG "$2"
+    $IP netns exec "${SESSION_ID}_$1" $2
 }
 
 #-------------------------------------------------------------------------------
@@ -93,8 +103,20 @@ yaneHostExists_netns() {
 #-------------------------------------------------------------------------------
 yaneHostPopulateFS_netns() {
     if [ -n "$2" -a -e "$2" ] ; then
-	logMessage LOG "Copying $2 to $3 in ${SESSION_ID}_$1"
-	$MKDIR -p /etc/netns/${SESSION_ID}_$1 >/dev/null 2>&1 || $TRUE
-	$CP -a $2/* /etc/netns/${SESSION_ID}_$1 >/dev/null 2>&1 || $TRUE
+	logMessage LOG "Copying $2 to $3 in netns $1"
+	$MKDIR -p /etc/netns/$1 >/dev/null 2>&1 || $TRUE
+	FILE_LIST=`cd $2 ; $FIND . -true`
+	for f in $FILE_LIST
+	do
+	    if [ ! -e "/etc/$f" ] ; then
+		if [ -d "$2/$f" ] ; then
+		    $MKDIR  "/etc/$f"
+		else
+		    $TOUCH "/etc/$f"
+		fi
+	    fi
+	done
+	
+	$CP -a $2/* /etc/netns/$1 >/dev/null 2>&1 || $TRUE
     fi
 }
