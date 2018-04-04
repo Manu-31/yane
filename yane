@@ -11,6 +11,7 @@
 #    0.3   : - introduce Docker
 #    0.4   : - Improved configuration
 #            - update some example files
+#    0.5   : - Move some files to build a deb package
 #
 #  TBD
 #    ???   : - reorganize option parsing
@@ -25,7 +26,8 @@
 #YANE_VERSION="0.2.1"   # First session management
 #YANE_VERSION="0.2.2"   # First file system management
 #YANE_VERSION="0.3"     # Docker and lots of help from SD
-YANE_VERSION="0.4"      # Improved configuration
+#YANE_VERSION="0.4"     # Improved configuration
+YANE_VERSION="0.5"      # First deb package built !
 
 #-------------------------------------------------------------------------------
 # Main commands (do not trust $PATH)
@@ -57,6 +59,14 @@ XTERM=/usr/bin/xterm
 # Main parameters
 #-------------------------------------------------------------------------------
 YANE_ROOT_DIR=$($DIRNAME $($READLINK -f $0))
+if [ $YANE_ROOT_DIR == /usr/bin ] ; then
+    YANE_CONF_DIR=/usr/share/yane
+    YANE_MODULE_DIR=/usr/share/yane/modules
+else
+    YANE_CONF_DIR=$YANE_ROOT_DIR
+    YANE_MODULE_DIR=${YANE_ROOT_DIR}/modules
+fi
+
 BASEDIR=$PWD
 DEBUG=False
 VERBOSE=False
@@ -66,7 +76,7 @@ YANE_DEFAULT_NETNS=yans-$$
 
 # Configuration
 YANE_DEFAULT_CONFIG_PARSER=yaml
-YANE_DEFAULT_CONFIG_FILE=${YANE_ROOT_DIR}/yane-config.yml
+YANE_DEFAULT_CONFIG_FILE=${YANE_CONF_DIR}/yane-config.yml
 
 #-------------------------------------------------------------------------------
 # Some variables
@@ -232,8 +242,8 @@ yanePopulateFileSystems () {
 #-------------------------------------------------------------------------------
 yaneLoadModules() {
    # Fisrt, we need a parser to read a config file
-   if [ -f ${YANE_ROOT_DIR}/yane_module_${YANE_DEFAULT_CONFIG_PARSER} ] ; then
-      . ${YANE_ROOT_DIR}/yane_module_${YANE_DEFAULT_CONFIG_PARSER}
+   if [ -f ${YANE_MODULE_DIR}/yane_module_${YANE_DEFAULT_CONFIG_PARSER} ] ; then
+      . ${YANE_MODULE_DIR}/yane_module_${YANE_DEFAULT_CONFIG_PARSER}
    else
       logMessage ERR "Unable to find a parser for '${YANE_DEFAULT_CONFIG_PARSER}'"
    fi
@@ -244,7 +254,7 @@ yaneLoadModules() {
       logMessage ERR "Unable to find '${YANE_DEFAULT_CONFIG_FILE}'"
    fi
 
-   mods=`$LS $YANE_ROOT_DIR/yane_module_*|$GREP -v \~`
+   mods=`$LS $YANE_MODULE_DIR/yane_module_*|$GREP -v \~`
 
    for mod in $mods
    do
@@ -302,7 +312,7 @@ yaneStartSnooping () {
        $MKDIR $FIFO_ROOT/$SESSION_ID/$h > /dev/null 2>&1 ||$TRUE
        $MKFIFO $FIFO_ROOT/$SESSION_ID/$h/$i
 
-       $IP netns exec ${SESSION_ID}_$h $YANE_ROOT_DIR/yane_run_tcpdump $i $FIFO_ROOT/$SESSION_ID/$h/$i > /dev/null 2>&1 &
+       $IP netns exec ${SESSION_ID}_$h $YANE_MODULE_DIR/yane_run_tcpdump $i $FIFO_ROOT/$SESSION_ID/$h/$i > /dev/null 2>&1 &
        echo $! >> $SNOOP_PID_FILE-$SESSION_ID
     done
 
@@ -381,7 +391,7 @@ yaneRunInitScripts () {
     do
 	ht=${hostMode[$hn]}
 	sc=${hostInit[$hn]}
-	if [ -n "$sc" ] ; then
+	if [ -n "$sc" -a -x "$sc" ] ; then
 	    logMessage DEB "Running '$sc' in '${SESSION_ID}_$hn' (type $ht)"
 	    yaneRunCmd_${hostMode[$hn]} "$hn" "$sc"
 	fi
