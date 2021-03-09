@@ -1,0 +1,18 @@
+network:
+  name : tstsrv
+  hosts:
+    - a
+    - b
+      mode: docker
+      image : quagga
+
+  services:
+    - dhs
+      type: dnsmasq
+
+  bridges:
+    - j
+      interfaces: .*:v1!dhs:v0
+    
+  consoles:
+    - all

@@ -122,8 +122,8 @@ buildNetworkFromFile_yaml () {
 
     declare -A SUBSTITUTIONS
     SUBSTITUTIONS["%S"]="YANE_SESSION"
-    SUBSTITUTIONS["%N"]="NETWORK_NAME"
-    SUBSTITUTIONS["%v"]="NETWORK_VERSION"
+    SUBSTITUTIONS["%N"]="network_name"
+    SUBSTITUTIONS["%v"]="network_version"
     SUBSTITUTIONS["%n"]="HOST_NAME"
     SUBSTITUTIONS["%m"]="HOST_MODE"
 
@@ -134,20 +134,22 @@ buildNetworkFromFile_yaml () {
 
    # First, yane configuration
    #--------------------------
-   VERBOSE=${yane_verbose}
-   DEBUG=${yane_debug}
+#   VERBOSE=${yane_verbose}
+#   DEBUG=${yane_debug}
 
    # Second, network config
    #-----------------------
-   NETWORK_NAME="${network_name}"
-   NETWORK_VERSION="${network_version}"
+#   NETWORK_NAME="${network_name}"
+#   NETWORK_VERSION="${network_version}"
    
 #   for hi in ${!network_hosts[@]}
 #   do
 #         network_hosts__name[$hi]="${network_hosts[$hi]}"
 #   done
      
+   #----------------------------------------------------------------------------
    # Build the host lists
+   #----------------------------------------------------------------------------
 #   for idx in ${!network_hosts__name[@]}
    for idx in ${!network_hosts[@]}
    do
@@ -226,15 +228,28 @@ buildNetworkFromFile_yaml () {
       logMessage LOG " . Init '$HOST_INIT'"
    done
 
-   #Build the services lists
-   for idx in ${!network_services__name[@]}
+   #----------------------------------------------------------------------------
+   # Build the services lists
+   #----------------------------------------------------------------------------
+   logMessage LOG "Building service list ..."
+   for idx in ${!network_services[@]}
    do
-       serviceName[${network_services__name[$idx]}]=${network_services__name[$idx]}
-       serviceType[${network_services__name[$idx]}]=${network_services__type[$idx]}
-       serviceConfig[${network_services__name[$idx]}]=${network_services__config[$idx]}
+      if [ -n "${network_services_name[$idx]}" ] ; then
+         SERVICE_NAME="${network_services_name[$idx]}"
+      else
+         SERVICE_NAME="${network_services[$idx]}"
+      fi
+      SERVICE_TYPE="${network_services_type[$idx]}" 
+      serviceName["$SERVICE_NAME"]=$SERVICE_NAME   # a bit useless, I know
+      serviceType["$SERVICE_NAME"]=$SERVICE_TYPE
+
+      #      serviceConfig[${network_services__name[$idx]}]=${network_services__config[$idx]}
+      logMessage LOG "Service '$SERVICE_NAME' type '$SERVICE_TYPE'"
    done
 
+   #----------------------------------------------------------------------------
    # Build the console list
+   #----------------------------------------------------------------------------
    if [ "$network_consoles" == "all" ] ; then
       for idx in ${hostName[@]}
       do
@@ -256,13 +271,17 @@ buildNetworkFromFile_yaml () {
       done
    fi
 
+   #----------------------------------------------------------------------------
    # Build the p2pLinks list
+   #----------------------------------------------------------------------------
    for idx in ${network_links[@]}
    do
       p2pLinks[$idx]=$idx
    done
 
+   #----------------------------------------------------------------------------
    # Build the bridges related lists
+   #----------------------------------------------------------------------------
 #   for idx in ${!network_bridges__name[@]}
    for idx in ${!network_bridges[@]}
    do
@@ -276,7 +295,7 @@ buildNetworkFromFile_yaml () {
       bridgeName[$BNAME]="$BNAME"
 #      bridgeInterfaces[$br]="${network_bridges__interfaces[$idx]}"
       bridgeInterfaces[$BNAME]="${network_bridges_interfaces[$idx]}"
-      logMessage DEB "$idx -> $BNAME  ${bridgeInterfaces[$BNAME]}"
+      logMessage DEB "Bridge $idx -> $BNAME  ${bridgeInterfaces[$BNAME]}"
    done
 
    # Build the dumpif list

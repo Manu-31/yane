@@ -1,0 +1,115 @@
+#!/bin/bash
+#===============================================================================
+# Service dnsmasq
+#   see ManuelProgrammeurServices
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# Service creation
+#    $1 name
+#-------------------------------------------------------------------------------
+yaneCreateService_dnsmasq ()
+{
+   logMessage LOG "Creating dnsmasq service '$1'"
+
+   if [ -z "${network_services_address[$1]}" -o "${network_services_address[$1]}" = "default" ] ; then
+      network_services_address[$1]=${services_dnsmasq_address}
+   fi
+   if [ -z "${network_services_range[$1]}" -o "${network_services_range[$1]}" = "default" ] ; then
+      network_services_range[$1]=${services_dnsmasq_range}
+   fi
+
+   logMessage LOG "'$1' add = ${network_services_address[$1]}, range=network_services_range[$1]"
+   
+}
+
+#-------------------------------------------------------------------------------
+# Service start
+#    $1 name
+#-------------------------------------------------------------------------------
+yaneStartService_dnsmasq ()
+{
+    INTERFACE=${network_services_interface[$1]}
+    ADDRESS=${network_services_address[$1]}
+    DHCP_RANGE=${network_services_range[$1]}
+
+    logMessage LOG "Starting dnsmasq service '$1' interface $INTERFACE addr $ADDRESS, range $DHCP_RANGE"
+    
+    $IP link set $INTERFACE up
+    $IP addr add dev $INTERFACE $ADDRESS
+    /usr/sbin/dnsmasq --bind-interfaces  --interface=${INTERFACE}  -I lo --domain-needed  --bogus-priv --domain=local.lan --dhcp-range=${DHCP_RANGE},12h --dhcp-option=1,255.255.255.0 --dhcp-option=3,$( $ECHO $ADDRESS | $CUT -d/ -f1 ) --dhcp-option=6,0.0.0.0 --expand-hosts --pid-file=${BASEDIR}/.${SESSION_ID}_dnsmasq_$1
+
+    logMessage LOG "dnsmasq '$1' masquerading"
+    
+    # Masquerading ...
+    iptables -t nat -A POSTROUTING -s ${ADDRESS} -j MASQUERADE
+    iptables -A FORWARD -i ${INTERFACE} -j ACCEPT
+    iptables -A FORWARD -o ${INTERFACE} -j ACCEPT
+    
+}
+
+#-------------------------------------------------------------------------------
+# Shutdown a service
+#    $1 name
+#    WARNING : là je ne sais pas comment faire ! Les infos ne sont pas
+# configurées. Pas dur pour la plupart, mais pas possible pour INTERFACE
+# proprement !
+#-------------------------------------------------------------------------------
+yaneShutdownService_dnsmasq ()
+{
+    logMessage LOG "Shutting down dnsmasq '$1'"
+
+    INTERFACE=${network_services_interface[$1]}
+    ADDRESS=${network_services_address[$1]}
+    DHCP_RANGE=${network_services_range[$1]}
+
+    logMessage LOG "IF '$INTERFACE', add '$ADDRESS', range '$DHCP_RANGE'"
+
+    # Shut down
+    $KILL -9 $($CAT ${BASEDIR}/.${SESSION_ID}_dnsmasq_$1)
+    $RM  ${BASEDIR}/.${SESSION_ID}_dnsmasq_$1
+
+    # Unmasquerading ...
+    iptables -t nat -D POSTROUTING -s ${ADDRESS}
+    iptables -D FORWARD -i ${INTERFACE}
+    iptables -D FORWARD -o ${INTERFACE}
+}
+
+#-------------------------------------------------------------------------------
+# Does a service exist ?
+#    $1 name
+#-------------------------------------------------------------------------------
+yaneServiceExists_dnsmasq ()
+{
+   return 0
+}
+
+#-------------------------------------------------------------------------------
+# Add an interface
+#    $1 : service name
+#    $2 : interface name (already created)
+#    $3 : IPv4 address (or "")
+#    $4 : netns in which $2 is defined
+#-------------------------------------------------------------------------------
+yaneAddServiceInterface_dnsmasq()
+{
+    logMessage DEB "add interface '$2' to service '$1' ..."
+
+    # This service run in the root namespace
+    # WARNING, the following is distro dependent
+    $MKDIR /var/run/netns  > /dev/null 2>&1 || $TRUE
+    logMessage DEB "creating default netns ..."
+    $LN -s /proc/1/ns/net /var/run/netns/default
+    
+    logMessage DEB "Renaming interface ..."
+    $IP netns exec $4 $IP link set $2 name ${1}_${2}
+    logMessage DEB "Moving  to default netns ..."
+    $IP netns exec $4 $IP link set ${1}_${2} netns default
+
+    network_services_interface[$1]="${1}_${2}"
+}
+
+yaneDeleteService_dnsmasq ()
+{
+    logMessage DEB "delete service '$1' ..."
+}

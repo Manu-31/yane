@@ -3,7 +3,11 @@ network:
   version: 1.0
   hosts:
     - host-a
+      mode : docker
+      image : quagga:latest
     - host-b
+      mode : docker
+      image : quagga:latest
 
   links:
     - host-a:v0:192.168.1.1/24!host-b:v0:192.168.1.2/24

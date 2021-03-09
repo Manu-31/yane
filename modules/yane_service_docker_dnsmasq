@@ -14,7 +14,7 @@ servicesVirtMode="docker"   # mode de virtualisation des services
 #  Créer un hote puis y ajoute les fichiers de configuration
 #   $1 : service name
 #-------------------------------------------------------------------------------
-yaneCreateService_dnsmasq () {
+yaneCreateService_docker_dnsmasq () {
     if (( NBDNSMASQ > 0 )); then
       logMessage ERR "you can't have more than 1 dnsmasq"
       exit 1
@@ -36,7 +36,7 @@ yaneCreateService_dnsmasq () {
 # shutdown services
 #   $1 : service name
 #-------------------------------------------------------------------------------
-yaneShutdownService_dnsmasq () {
+yaneShutdownService_docker_dnsmasq () {
    shutdownHost_$servicesVirtMode $1
 }
 
@@ -44,7 +44,7 @@ yaneShutdownService_dnsmasq () {
 # delete services
 #   $1 : service name
 #-------------------------------------------------------------------------------
-yaneDeleteService_dnsmasq () {
+yaneDeleteService_docker_dnsmasq () {
    deleteHost_$servicesVirtMode $1
    $IP link del $SESSION_ID${serviceType[$1]}
 }
@@ -53,7 +53,7 @@ yaneDeleteService_dnsmasq () {
 # connect dnsmasq server to "internet"
 #   $1 : service name
 #-------------------------------------------------------------------------------
-yaneRunService_dnsmasq () {
+yaneRunService_docker_dnsmasq () {
    #----------------------------------------------------------------------------
    # Constantes
    #----------------------------------------------------------------------------

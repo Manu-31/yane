@@ -30,9 +30,26 @@ yaneCreateBridges () {
       # Each interface is part of a p2plink
       num=0
       for i in `echo $intList | sed -e "s/!/ /g"` ; do
-	 logMessage DEB "Creating '$i!$br:${br}i$num'"
-	 createLink "$i!$br:${br}i$num"
-         num=`expr $num + 1`
+	  logMessage DEB "Add '$i!$br:${br}i$num' to bridge '$idx'"
+	  SRC_PATTERN=`echo $i|cut -d: -f1`
+	  SRC_INTERFACE=`echo $i|cut -d: -f2`
+	  # Is SRC_PATTERN a host or a service ?
+	  if  $(yaneHostExists "$SRC_PATTERN") ||  $(yaneServiceExists "$SRC_PATTERN") ; then
+	      logMessage DEB "We have an host/service"
+              createLink "$i!$br:${br}i$num"
+	      num=`expr $num + 1`
+	  else
+	      logMessage DEB  "On tente un regex sur '$SRC_PATTERN'"
+	      for hn in ${hostName[@]}
+	      do
+		  logMessage DEB "   . Est ce que '$hn' correspond à '$SRC_PATTERN' ?"
+		  if [[ $hn =~ $SRC_PATTERN ]] ; then
+		      #echo  OUI
+		      createLink "${hn}:${SRC_INTERFACE}!$br:${br}i$num"
+                      num=`expr $num + 1`
+		  fi	  
+	      done
+	  fi
       done
 
    done

@@ -4,16 +4,16 @@ network:
   hosts:
     -
       name: host-a
-      mode: namespace
+      mode: docker
+      image: alpine:latest
     -
       name: host-b
-      mode: namespace
-
+      mode: docker
+      image: alpine:latest
     -
       name: r1
       mode: docker
       image: quagga:latest
-
     -
       name: r2
       mode: docker

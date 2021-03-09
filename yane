@@ -35,9 +35,11 @@ YANE_VERSION="0.5"      # First deb package built !
 BASH=/bin/bash
 BASENAME=/usr/bin/basename
 CAT=/bin/cat
+CUT=/usr/bin/cut
 CP=/bin/cp
 DOCKER=/usr/bin/docker
 DIRNAME=/usr/bin/dirname
+ECHO=/bin/echo
 FIND=/usr/bin/find
 GREP=/bin/grep
 IP=/sbin/ip
@@ -68,8 +70,8 @@ else
 fi
 
 BASEDIR=$PWD
-DEBUG=False
-VERBOSE=False
+yane_debug=False
+yane_verbose=False
 NET_CONFIG_FILE=yane.yml
 TMP_CFG_FILE=./yane.$$
 YANE_DEFAULT_NETNS=yans-$$
@@ -125,25 +127,26 @@ cleanup () {
 
 #-------------------------------------------------------------------------------
 # Basic log utility
-#   $1 : LOG (printed iif VERBOSE) ERR DEB (print iif DEBUG)
+#   $1 : LOG (printed iif yane_verbose) ERR DEB (print iif yane_debug)
 #   $2 : message
 #-------------------------------------------------------------------------------
 logMessage () {
+#   echo "        (v=$yane_verbose d=$yane_debug )"
    case "$1" in
       ERR )
          shift
-         echo "$(date +%T) [ERROR] (Session ${SESSION_ID}) $*"
+         echo "$(date +%T) [ERR] (Session ${SESSION_ID}) $*"
       ;;
       LOG )
          shift
-         if [ "$VERBOSE" == "True" ] ; then
+         if [ "$yane_verbose" == "True" ] ; then
             echo "$(date +%T) [LOG] (Session ${SESSION_ID}) $*"
          fi
       ;;
       DEB )
          shift
-         if [ "$DEBUG" == "True" ] ; then
-            echo "$(date +%T) [DEBUG] (Session ${SESSION_ID}) $*"
+         if [ "$yane_debug" == "True" ] ; then
+            echo "$(date +%T) [DBG] (Session ${SESSION_ID}) $*"
          fi
       ;;
    esac
@@ -158,7 +161,7 @@ exitYane () {
 # Display hosts
 #-------------------------------------------------------------------------------
 yaneDisplayHosts () {
-   for hn in ${network_hosts__name[@]}
+   for hn in ${network_hosts_name[@]}
    do
       echo "[${hostNum[$hn]}]  $hn mode ${hostMode[$hn]}"
    done
@@ -183,6 +186,19 @@ yaneHostUnknown() {
 }
 
 #-------------------------------------------------------------------------------
+# Have we created service $1 in $SESSION_ID ?
+#-------------------------------------------------------------------------------
+yaneServiceExists() {
+    echo "Le service $1 existe-t-il ?" >>  /tmp/log
+   if [ "${serviceName["$1"]}" != "$1" ] ; then
+    echo "Nom inconnu ...">>  /tmp/log
+      return 1
+   fi
+    echo "On demnde a " ${serviceType["$1"]} >>  /tmp/log
+   return $(yaneServiceExists_${serviceType["$1"]} ${SESSION_ID}_"$1")
+}
+
+#-------------------------------------------------------------------------------
 # Can $1 host a new $2 interface in $SESSION_ID ?
 #-------------------------------------------------------------------------------
 yaneDeviceCanHostInterface() {
@@ -191,8 +207,8 @@ yaneDeviceCanHostInterface() {
       return 1
    fi
 
-   # If $1 is an host
-   if $(yaneHostExists "$1") ; then
+   # If $1 is an host or a service
+   if $(yaneHostExists "$1") ||  $(yaneServiceExists "$1") ; then
        # WARNING : should check for $2
       return 0
    fi
@@ -258,7 +274,8 @@ yaneLoadModules() {
 
    for mod in $mods
    do
-      logMessage DEB "Loading $mod"
+      m=`$BASENAME $mod`
+      logMessage LOG "Loading $m"
       . $mod
       modules+="`$BASENAME $mod` "
    done
@@ -465,7 +482,7 @@ yaneAddInterface () {
 #-------------------------------------------------------------------------------
 createLink () {
    l=$1
-   logMessage LOG Creating link $l
+   logMessage LOG "Creating link $l"
 
    src=`echo $l| cut -d! -f1`
    srch=`echo $src|cut -d: -f1`
@@ -479,7 +496,7 @@ createLink () {
       exit
    fi
    # WARNING : first check $srch type
-   if $(yaneHostExists "$srch") ; then
+   if $(yaneHostExists "$srch") || $(yaneServiceExists "$srch") ; then
       logMessage DEB "host $srch OK"
    else
       logMessage ERR "$srch name ${hostName["$srch"]} unknown"
@@ -538,9 +555,15 @@ createLink () {
       exit 1
    fi
    # Search for source host
-   if [[ ${hostMode["$srch"]} ]] ; then
+#   if [[ ${hostMode["$srch"]} ]] ; then
+   if $(yaneHostExists "$srch") ; then
        logMessage DEB "source host found"
        yaneAddHostInterface_${hostMode[$srch]} $srch $srci "$srca" yane-src-$$
+   fi
+   if $(yaneServiceExists "$srch") ; then
+       logMessage DEB "source service found ..."
+       yaneAddServiceInterface_${serviceType[$srch]} $srch $srci "$srca" yane-src-$$
+       logMessage DEB "source service done"
    fi
    # Search for destination host
    if [[ ${hostMode["$dsth"]} ]] ; then
@@ -616,14 +639,15 @@ yaneBootNetworkSession () {
    logMessage DEB "Booting up the hosts ..."
    bootHosts
 
-   logMessage DEB "Booting up the services ..."
-   yaneRunServices
-
    # Create the bridges
    yaneCreateBridges
 
    # Setting up the links
    createLinks
+
+   # Services may need the links
+   logMessage DEB "Booting up the services ..."
+   yaneStartServices
 
    # Run init scripts
    yaneRunInitScripts
@@ -760,9 +784,8 @@ do
       fi
     ;;
     -d )
-      parse_yaml $NET_CONFIG_FILE
-      DEBUG=True
-	  ;;
+      yane_debug=True
+    ;;
     -f )
 	  shift
       NET_CONFIG_FILE="$1"
@@ -792,9 +815,9 @@ do
 	    exit
     ;;
     -n )
-      PRETEND=TRUE
-      VERBOSE=TRUE
-	    echo "Pretending, won't do anything"
+      PRETEND=True
+      yane_verbose=True
+      echo "Pretending, won't do anything"
     ;;
     -p )
       buildNetworkFromFile_yaml $NET_CONFIG_FILE
@@ -818,7 +841,7 @@ do
       exit
     ;;
     -v )
-      VERBOSE=True
+      yane_verbose=True
     ;;
     -h )
       showHelp

@@ -10,12 +10,24 @@
 yaneCreateServices () {
   for serv in ${serviceName[@]}
   do
+    logMessage LOG "Creation of service '$serv' (type '${serviceType[$serv]}') ..."
     yaneCreateService_${serviceType[$serv]} $serv
   done
 }
 
 #-------------------------------------------------------------------------------
-# Create all services
+# Start all services
+#-------------------------------------------------------------------------------
+yaneStartServices () {
+  for serv in ${serviceName[@]}
+  do
+    logMessage LOG "Starting service '$serv' (type '${serviceType[$serv]}') ..."
+    yaneStartService_${serviceType[$serv]} $serv
+  done
+}
+
+#-------------------------------------------------------------------------------
+# Shutdown all services
 #-------------------------------------------------------------------------------
 yaneShutdownServices () {
   for serv in ${serviceName[@]}
@@ -35,10 +47,11 @@ yaneDeleteServices () {
   $IP link del yane0
 }
 
+
 #-------------------------------------------------------------------------------
 # Set NAT and connect services
 #-------------------------------------------------------------------------------
-yaneRunServices () {
+yaneRunServices_old () {
   logMessage LOG "Connecting services ..."
   if [ -z "$serv" ] ; then
       logMessage LOG "No service to connect !"
@@ -82,3 +95,11 @@ yaneRunServices () {
   iptables -A FORWARD -i $($IP route | awk '/default/ { print $5 }') -o $br_name -j ACCEPT
   iptables -A FORWARD -o $($IP route | awk '/default/ { print $5 }') -i $br_name -j ACCEPT
 }
+
+logMessage LOG "Loading services ..."
+for service in $YANE_MODULE_DIR/yane_service_*
+do
+    sr=`$BASENAME $service`
+    logMessage LOG "   . $sr"
+    . $service
+done

@@ -2,8 +2,8 @@
 #   Configuration générale de yane
 #-------------------------------------------------------
 yane :
-  verbose: False
-  debug: False
+  verbose: True
+  debug: True
   
 #-------------------------------------------------------
 # Paramètres par défaut d'un réseau
@@ -36,3 +36,12 @@ docker :
     -
       image: "alpine:latest"
       files: docker/%n:/
+
+#-------------------------------------------------------
+# Paramètres par défaut d'un docker
+#-------------------------------------------------------
+services :
+  dnsmasq :
+    -
+      address: 192.168.5.1/24
+      range:192.168.5.2,192.168.5.254
